@@ -1,5 +1,5 @@
 {
-  "name": "treepatch",
+  "name": "enhancepatch",
   "version": "0.1.0",
   "description": "Record/apply changes to an object tree",
   "main": "lib/index.js",
@@ -14,7 +14,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/FTWinston/treepatch.git"
+    "url": "git+https://github.com/FTWinston/enhancepatch.git"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.10.2",
@@ -27,5 +27,8 @@
   },
   "files": [
     "lib/**/*"
-  ]
+  ],
+  "dependencies": {
+    "enhancejson": "^0.1.0"
+  }
 }
