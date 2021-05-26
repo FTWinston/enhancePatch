@@ -1,12 +1,10 @@
-import { createMap } from './createMap';
-import { createSet } from './createSet';
 import { Operation } from './Operation';
-import * as OperationType from './OperationType';
+import { OperationType } from './OperationType';
 import { reallocate } from './reallocate';
 import { removeValue } from './removeValue';
 import { setValue } from './setValue';
 import { splitPath } from './splitPath';
-import { isArray } from './types';
+import { isArray } from 'enhancejson/lib/typeChecks';
 
 function applyOperation(operation: Operation, tree: any) {
     const segments = splitPath(operation.p);
@@ -17,17 +15,16 @@ function applyOperation(operation: Operation, tree: any) {
     }
 
     switch (operation.o) {
-        case OperationType.SetValue:
-            if (isArray(operation.k)) {
-                const length = Math.min(operation.k.length, operation.v.length);
-                for (let i = 0; i < length; i++) {
-                    setValue(parentElement, operation.k[i], operation.v[i]);
-                }
-            } else {
-                setValue(parentElement, operation.k, operation.v);
+        case OperationType.SingleValue:
+            setValue(parentElement, operation.k, operation.v);
+            break;
+        case OperationType.MultipleValues:
+            const length = Math.min(operation.k.length, operation.v.length);
+            for (let i = 0; i < length; i++) {
+                setValue(parentElement, operation.k[i], operation.v[i]);
             }
             break;
-        case OperationType.RemoveValue:
+        case OperationType.Delete:
             if (isArray(operation.k)) {
                 for (let i = operation.k.length - 1; i >= 0; i--) {
                     removeValue(parentElement, operation.k[i]);
@@ -36,17 +33,11 @@ function applyOperation(operation: Operation, tree: any) {
                 removeValue(parentElement, operation.k);
             }
             break;
-        case OperationType.InitMap:
-            const map = createMap(operation.v);
-            setValue(parentElement, operation.k, map);
-            break;
-        case OperationType.InitSet:
-            const set = createSet(operation.v);
-            setValue(parentElement, operation.k, set);
-            break;
         default:
             const val: never = operation;
-            throw new Error(`Unexpected operation type: ${JSON.stringify(operation)}`);
+            throw new Error(
+                `Unexpected operation type: ${JSON.stringify(operation)}`
+            );
     }
 
     return newTree;

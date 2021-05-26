@@ -1,32 +1,20 @@
-import type { SetValue, RemoveValue, InitMap, InitSet } from './OperationType';
+import type { OperationType } from './OperationType';
 
 export type Operation =
     | {
-          o: typeof SetValue;
+          o: typeof OperationType.SingleValue;
           p?: string;
           k: string | number;
           v: any;
       }
     | {
-          o: typeof SetValue;
+          o: typeof OperationType.MultipleValues;
           p?: string;
           k: Array<string | number>;
           v: Array<any>;
       }
     | {
-          o: typeof RemoveValue;
+          o: typeof OperationType.Delete;
           p?: string;
           k: string | number | Array<string | number>;
-      }
-    | {
-          o: typeof InitMap;
-          p?: string;
-          k: string | number;
-          v?: Array<[string | number, any]>;
-      }
-    | {
-          o: typeof InitSet;
-          p?: string;
-          k: string | number;
-          v?: Array<string | number>;
       };

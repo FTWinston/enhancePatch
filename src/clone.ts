@@ -1,4 +1,4 @@
-import { isArray, isMap, isObject, isSet } from './types';
+import { isArray, isMap, isObject, isSet } from 'enhancejson/lib/typeChecks';
 
 export function clone(o: any) {
     if (isArray(o)) {

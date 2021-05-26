@@ -1,5 +1,6 @@
 import { clone } from './clone';
-import { isArray, isIndexString, isMap, isObject } from './types';
+import { isIndexString } from './typeChecks';
+import { isArray, isMap, isObject } from 'enhancejson/lib/typeChecks';
 
 function reallocateSegment(target: any, key: string) {
     if (isArray(target)) {

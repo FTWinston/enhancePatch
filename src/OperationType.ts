@@ -1,4 +1,5 @@
-export const SetValue = 'v';
-export const RemoveValue = 'r';
-export const InitMap = 'm';
-export const InitSet = 's';
+export enum OperationType {
+    SingleValue = 's',
+    MultipleValues = 'm',
+    Delete = 'd',
+}
