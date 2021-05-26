@@ -4,9 +4,10 @@ import { reallocate } from './reallocate';
 import { removeValue } from './removeValue';
 import { setValue } from './setValue';
 import { splitPath } from './splitPath';
+import { parse } from 'enhancejson/lib/parse';
 import { isArray } from 'enhancejson/lib/typeChecks';
 
-function applyOperation(operation: Operation, tree: any) {
+function applyOperation(tree: any, operation: Operation) {
     const segments = splitPath(operation.p);
     const [newTree, parentElement] = reallocate(tree, segments);
 
@@ -43,9 +44,17 @@ function applyOperation(operation: Operation, tree: any) {
     return newTree;
 }
 
-export function applyPatch(patch: Operation[], tree: any) {
+export function applyPatch(tree: any, patch: string | Operation | Operation[]) {
+    if (typeof patch === 'string') {
+        patch = parse(patch) as Operation | Operation[];
+    }
+
+    if (!isArray(patch)) {
+        patch = [patch];
+    }
+
     for (const operation of patch) {
-        tree = applyOperation(operation, tree);
+        tree = applyOperation(tree, operation);
     }
 
     return tree;
