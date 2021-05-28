@@ -1,6 +1,6 @@
-import { applyPatch } from '../applyPatch';
-import type { Operation } from '../Operation';
-import { OperationType } from '../OperationType';
+import { applyPatch } from './applyPatch';
+import type { Operation } from './Operation';
+import { OperationType } from './OperationType';
 
 describe('single value', () => {
     test('basic types', () => {

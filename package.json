@@ -29,6 +29,6 @@
     "lib/**/*"
   ],
   "dependencies": {
-    "enhancejson": "^0.2.0"
+    "enhancejson": "^1.0.0"
   }
 }
