@@ -29,7 +29,7 @@ export class ProxyManager {
                     fieldProxy = this.proxies.get(val);
 
                     if (!fieldProxy && this.canProxy(val)) {
-                        const childPath = `${path}/${field}`;
+                        const childPath = path === '' ? field : `${path}/${field}`;
                         fieldProxy = this.createProxy(val, childPath);
                         proxiedChildren.add(val);
                     }
@@ -103,7 +103,7 @@ export class ProxyManager {
         const proxyInfo = this.proxies.get(object);
 
         if (!proxyInfo) {
-            return false;
+            return;
         }
 
         this.proxies.delete(object);
@@ -112,8 +112,6 @@ export class ProxyManager {
         for (const childObject of proxyInfo.proxiedChildren) {
             this.removeProxy(childObject);
         }
-
-        return true;
     }
 
     private createSetOperation(
