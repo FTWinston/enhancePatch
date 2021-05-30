@@ -1,14 +1,10 @@
 import { clone } from './clone';
-import { isIndexString } from './typeChecks';
+import { arrayIndex } from './arrayIndex';
 import { isArray, isMap, isObject } from 'enhancejson/lib/typeChecks';
 
 function reallocateSegment(target: any, key: string) {
     if (isArray(target)) {
-        if (!isIndexString(key)) {
-            throw new Error('Array key must be a positive integer');
-        }
-
-        const index = parseInt(key, 10);
+        const index = arrayIndex(key);
 
         if (target.length <= index) {
             throw new Error('Index is greater than length of array');

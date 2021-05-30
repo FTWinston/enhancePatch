@@ -8,7 +8,7 @@ export function recordChanges(object: any): {
 } {
     const patchOperations: Operation[] = [];
 
-    const manager = new ProxyManager(op => patchOperations.push(op));
+    const manager = new ProxyManager((op) => patchOperations.push(op));
 
     return {
         proxy: manager.createProxy(object, ''),

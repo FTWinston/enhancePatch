@@ -1,3 +1,4 @@
+import { isArray } from 'enhancejson/lib/typeChecks';
 import type { Operation } from './Operation';
 import { OperationType } from './OperationType';
 
@@ -23,13 +24,18 @@ export class ProxyManager {
         const proxy: BaseObject = new Proxy(underlying, {
             get: (target, field) => {
                 const val = (target as any)[field];
+
                 let fieldProxy: BaseObject | undefined;
 
                 if (typeof field === 'string' && field !== 'prototype') {
-                    fieldProxy = this.proxies.get(val);
+                    const fieldProxyInfo = this.proxies.get(val);
 
-                    if (!fieldProxy && this.canProxy(val)) {
-                        const childPath = path === '' ? field : `${path}/${field}`;
+                    if (fieldProxyInfo) {
+                        fieldProxy = fieldProxyInfo.proxy;
+                    } else if (this.canProxy(val)) {
+                        const childPath =
+                            path === '' ? field : `${path}/${field}`;
+
                         fieldProxy = this.createProxy(val, childPath);
                         proxiedChildren.add(val);
                     }
@@ -46,9 +52,12 @@ export class ProxyManager {
                     proxiedChildren.delete(prevVal);
                     this.removeProxy(prevVal);
 
-                    this.patchCallback(
-                        this.createSetOperation(path, field, val)
-                    );
+                    // Don't record array length changes. TODO: separate array proxy I guess.
+                    if (!isArray(target) || field !== 'length') {
+                        this.patchCallback(
+                            this.createSetOperation(path, field, val)
+                        );
+                    }
                 }
 
                 return true;
@@ -78,18 +87,7 @@ export class ProxyManager {
 
         return proxy;
     }
-    /*
-    public getProxy(object: BaseObject, path: string) {
-        // If object already has a managed proxy, just return that.
-        const existing = this.proxies.get(object);
 
-        if (existing) {
-            return existing;
-        }
-
-        return this.createProxy(object, path);
-    }
-*/
     private canProxy(object: any) {
         if (this.proxies.has(object)) {
             return false;
