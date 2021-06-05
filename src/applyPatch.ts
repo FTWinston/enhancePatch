@@ -35,8 +35,29 @@ function applyOperation(tree: any, operation: Operation) {
                 removeValue(parentElement, operation.k);
             }
             break;
-        case OperationType.ClearCollection:
+        case OperationType.Clear:
             clearValue(parentElement);
+            break;
+        case OperationType.ArraySplice:
+            if (isArray(parentElement)) {
+                const [index, deleteCount, items] = operation.v;
+                parentElement.splice(index, deleteCount, ...items);
+            }
+            break;
+        case OperationType.ArrayShift:
+            if (isArray(parentElement)) {
+                parentElement.shift();
+            }
+            break;
+        case OperationType.ArrayUnshift:
+            if (isArray(parentElement)) {
+                parentElement.unshift(...operation.v);
+            }
+            break;
+        case OperationType.ArrayReverse:
+            if (isArray(parentElement)) {
+                parentElement.reverse();
+            }
             break;
         default:
             const val: never = operation;

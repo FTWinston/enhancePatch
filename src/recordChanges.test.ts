@@ -12,7 +12,7 @@ test('simple objects', () => {
         hello: 'world',
     };
     proxy.z.bye = 'everybody';
-    proxy.z.a = {a: 'aa'};
+    proxy.z.a = { a: 'aa' };
     proxy.z.a.b = 'bb';
     proxy.y = { yo: 'ho' };
     delete proxy.x;
@@ -25,7 +25,7 @@ test('simple objects', () => {
             a: {
                 a: 'aa',
                 b: 'bb',
-            }
+            },
         },
     });
 
@@ -50,7 +50,7 @@ test('simple objects', () => {
     expect(subsequentPatch).toBeNull();
 });
 
-test('arrays', () => {
+test('arrays, all in one', () => {
     const tree = {};
 
     const { proxy, getPatch } = recordChanges(tree);
@@ -59,9 +59,11 @@ test('arrays', () => {
     proxy.a.push('hi');
     proxy.a.push('there');
     proxy.a.push({ what: 'up' });
-    proxy.a[2].hello = 'there';
 
     proxy.a.splice(1, 1);
+
+    proxy.a.push('hey');
+    proxy.a[1].hello = 'there';
 
     expect(tree).toEqual({
         a: [
@@ -70,6 +72,7 @@ test('arrays', () => {
                 what: 'up',
                 hello: 'there',
             },
+            'hey',
         ],
     });
 
@@ -87,6 +90,65 @@ test('arrays', () => {
         expect(updatedTree).toEqual(tree);
 
         expect(newTree).toEqual({});
+    }
+
+    const subsequentPatch = getPatch();
+
+    expect(subsequentPatch).toBeNull();
+});
+
+test('arrays, separate', () => {
+    const tree = {};
+
+    const { proxy, getPatch } = recordChanges(tree);
+
+    proxy.a = [];
+
+    const firstPatch = getPatch();
+
+    if (firstPatch === null) {
+        return;
+    }
+
+    const firstPatchedTree = applyPatch({}, firstPatch);
+
+    expect(firstPatchedTree).toEqual(tree);
+
+    proxy.a.push('hi');
+    proxy.a.push('there');
+    proxy.a.push({ what: 'up' });
+
+    proxy.a.splice(1, 1);
+
+    proxy.a.push('hey');
+
+    proxy.a[1].hello = 'there';
+
+    expect(tree).toEqual({
+        a: [
+            'hi',
+            {
+                what: 'up',
+                hello: 'there',
+            },
+            'hey',
+        ],
+    });
+
+    expect(proxy).toEqual(tree);
+
+    const patch = getPatch();
+
+    console.log('second array patch', patch);
+
+    expect(patch).not.toBeNull();
+
+    if (patch !== null) {
+        const updatedTree = applyPatch(firstPatchedTree, patch);
+
+        expect(updatedTree).toEqual(tree);
+
+        expect(firstPatchedTree).toEqual({ a: [] });
     }
 
     const subsequentPatch = getPatch();

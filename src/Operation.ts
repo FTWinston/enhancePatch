@@ -19,6 +19,24 @@ export type Operation =
           k: string | number | Array<string | number>;
       }
     | {
-          o: typeof OperationType.ClearCollection;
+          o: typeof OperationType.Clear;
+          p?: string;
+      }
+    | {
+          o: typeof OperationType.ArraySplice;
+          p?: string;
+          v: [number, number, any[]];
+      }
+    | {
+          o: typeof OperationType.ArrayShift;
+          p?: string;
+      }
+    | {
+          o: typeof OperationType.ArrayUnshift;
+          p?: string;
+          v: any[];
+      }
+    | {
+          o: typeof OperationType.ArrayReverse;
           p?: string;
       };

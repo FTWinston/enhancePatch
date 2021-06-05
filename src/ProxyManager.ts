@@ -122,6 +122,56 @@ export class ProxyManager {
             get: (target, field) => {
                 let val = (target as any)[field];
 
+                if (field === 'splice') {
+                    return (
+                        start: number,
+                        deleteCount: number,
+                        ...items: any[]
+                    ) => {
+                        for (let i = start; i < start + deleteCount; i++) {
+                            const removing = target[i];
+                            proxiedChildren.delete(removing);
+                            this.removeProxy(removing);
+                        }
+
+                        this.patchCallback(
+                            this.createSpliceOperation(
+                                path,
+                                start,
+                                deleteCount,
+                                items
+                            )
+                        );
+
+                        return target.splice(start, deleteCount, ...items);
+                    };
+                } else if (field === 'shift') {
+                    return () => {
+                        this.patchCallback(this.createShiftOperation(path));
+
+                        const shifted = target.shift();
+
+                        proxiedChildren.delete(shifted);
+                        this.removeProxy(shifted);
+
+                        return shifted;
+                    };
+                } else if (field === 'unshift') {
+                    return (...items: any[]) => {
+                        this.patchCallback(
+                            this.createUnshiftOperation(path, items)
+                        );
+
+                        return target.unshift(...items);
+                    };
+                } else if (field === 'reverse') {
+                    return () => {
+                        this.patchCallback(this.createReverseOperation(path));
+
+                        return target.reverse();
+                    };
+                }
+
                 if (typeof field === 'string' && field !== 'prototype') {
                     val = this.getField(path, field, val, proxiedChildren);
                 }
@@ -360,7 +410,42 @@ export class ProxyManager {
     private createClearOperation(path: string): Operation {
         return {
             p: path,
-            o: OperationType.ClearCollection,
+            o: OperationType.Clear,
+        };
+    }
+
+    private createSpliceOperation(
+        path: string,
+        start: number,
+        deleteCount: number,
+        items: any[]
+    ): Operation {
+        return {
+            p: path,
+            o: OperationType.ArraySplice,
+            v: [start, deleteCount, items],
+        };
+    }
+
+    private createShiftOperation(path: string): Operation {
+        return {
+            p: path,
+            o: OperationType.ArrayShift,
+        };
+    }
+
+    private createUnshiftOperation(path: string, items: any[]): Operation {
+        return {
+            p: path,
+            o: OperationType.ArrayUnshift,
+            v: items,
+        };
+    }
+
+    private createReverseOperation(path: string): Operation {
+        return {
+            p: path,
+            o: OperationType.ArrayReverse,
         };
     }
 }
