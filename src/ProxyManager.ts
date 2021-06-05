@@ -66,6 +66,15 @@ export class ProxyManager {
         this.patchCallback(this.createDeleteOperation(path, field));
     }
 
+    private clearAllFields(path: string, proxiedChildren: Set<BaseObject>) {
+        for (const val of proxiedChildren) {
+            this.removeProxy(val);
+        }
+        proxiedChildren.clear();
+
+        this.patchCallback(this.createClearOperation(path));
+    }
+
     private createObjectHandler(
         path: string,
         proxiedChildren: Set<BaseObject>
@@ -211,7 +220,7 @@ export class ProxyManager {
                 } else if (field === 'clear') {
                     func = () => {
                         target.clear();
-                        // TODO: generate patch
+                        this.clearAllFields(path, proxiedChildren);
                     };
                 } else {
                     let val = (target as any)[field];
@@ -260,7 +269,7 @@ export class ProxyManager {
                 } else if (field === 'clear') {
                     func = () => {
                         target.clear();
-                        // TODO: generate patch
+                        this.clearAllFields(path, proxiedChildren);
                     };
                 } else {
                     let val = (target as any)[field];
@@ -345,6 +354,13 @@ export class ProxyManager {
             p: path,
             o: OperationType.Delete,
             k: field,
+        };
+    }
+
+    private createClearOperation(path: string): Operation {
+        return {
+            p: path,
+            o: OperationType.ClearCollection,
         };
     }
 }

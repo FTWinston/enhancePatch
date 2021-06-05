@@ -6,6 +6,7 @@ import { setValue } from './setValue';
 import { splitPath } from './splitPath';
 import { parse } from 'enhancejson/lib/parse';
 import { isArray } from 'enhancejson/lib/typeChecks';
+import { clearValue } from './clearValue';
 
 function applyOperation(tree: any, operation: Operation) {
     const segments = splitPath(operation.p);
@@ -33,6 +34,9 @@ function applyOperation(tree: any, operation: Operation) {
             } else {
                 removeValue(parentElement, operation.k);
             }
+            break;
+        case OperationType.ClearCollection:
+            clearValue(parentElement);
             break;
         default:
             const val: never = operation;

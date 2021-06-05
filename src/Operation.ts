@@ -17,4 +17,8 @@ export type Operation =
           o: typeof OperationType.Delete;
           p?: string;
           k: string | number | Array<string | number>;
+      }
+    | {
+          o: typeof OperationType.ClearCollection;
+          p?: string;
       };
