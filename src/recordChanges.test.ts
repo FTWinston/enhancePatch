@@ -12,6 +12,8 @@ test('simple objects', () => {
         hello: 'world',
     };
     proxy.z.bye = 'everybody';
+    proxy.z.a = {a: 'aa'};
+    proxy.z.a.b = 'bb';
     proxy.y = { yo: 'ho' };
     delete proxy.x;
 
@@ -20,8 +22,14 @@ test('simple objects', () => {
         z: {
             hello: 'world',
             bye: 'everybody',
+            a: {
+                a: 'aa',
+                b: 'bb',
+            }
         },
     });
+
+    expect(proxy).toEqual(tree);
 
     const patch = getPatch();
 
@@ -64,6 +72,8 @@ test('arrays', () => {
             },
         ],
     });
+
+    expect(proxy).toEqual(tree);
 
     const patch = getPatch();
 
