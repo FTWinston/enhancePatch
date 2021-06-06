@@ -262,7 +262,7 @@ export class ProxyManager {
                         target.delete(key);
 
                         if (this.isAllowedMapKey(key)) {
-                            this.deleteField(path, field, val, proxiedChildren);
+                            this.deleteField(path, key, val, proxiedChildren);
                         }
 
                         return this;
@@ -311,7 +311,7 @@ export class ProxyManager {
                         target.delete(key);
 
                         if (this.isAllowedMapKey(key)) {
-                            this.deleteField(path, field, 1, proxiedChildren);
+                            this.deleteField(path, key, 1, proxiedChildren);
                         }
 
                         return this;

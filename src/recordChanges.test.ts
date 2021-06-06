@@ -177,14 +177,13 @@ test('array, as root', () => {
     proxy[1].hello = 'there';
 
     expect(tree).toEqual([
-            'hi',
-            {
-                what: 'up',
-                hello: 'there',
-            },
-            'hey',
-        ]
-    );
+        'hi',
+        {
+            what: 'up',
+            hello: 'there',
+        },
+        'hey',
+    ]);
 
     expect(proxy).toEqual(tree);
 
@@ -207,8 +206,61 @@ test('array, as root', () => {
     expect(subsequentPatch).toBeNull();
 });
 
-// TODO: Map and Set
+test('map and set', () => {
+    const tree = {
+        map: new Map<any, any>(),
+        set: new Set<any>(),
+    };
 
-// TODO: Map and Set as root
+    const { proxy, getPatch } = recordChanges(tree);
+
+    proxy.map.set('a', 1);
+    proxy.map.set(2, 'b');
+    proxy.map.set(2, 'c');
+    proxy.map.delete('a');
+
+    proxy.set.add('a');
+    proxy.set.add('b');
+    proxy.set.add(3);
+    proxy.set.delete('b');
+
+    expect(tree.map.get(2)).toEqual('c');
+    expect(proxy.map.get(2)).toEqual('c');
+
+    expect(tree).toEqual({
+        map: new Map([[2, 'c']]),
+        set: new Set(['a', 3]),
+    });
+
+    expect(proxy).toEqual(tree);
+
+    const patch = getPatch();
+
+    expect(patch).not.toBeNull();
+
+    if (patch !== null) {
+        const newTree = {
+            map: new Map<any, any>(),
+            set: new Set<any>(),
+        };
+
+        const updatedTree = applyPatch(newTree, patch);
+
+        expect(updatedTree).toEqual(tree);
+
+        expect(newTree).toEqual({
+            map: new Map<any, any>(),
+            set: new Set<any>(),
+        });
+    }
+
+    const subsequentPatch = getPatch();
+
+    expect(subsequentPatch).toBeNull();
+});
+
+// TODO: Map as root
+
+// TODO: Set as root
 
 // TODO: Date

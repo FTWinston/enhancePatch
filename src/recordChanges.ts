@@ -19,7 +19,7 @@ export function recordChanges(object: any): {
             }
 
             const result = stringify(optimisePatch(patchOperations));
-            
+
             patchOperations.splice(0, patchOperations.length);
 
             return result;
