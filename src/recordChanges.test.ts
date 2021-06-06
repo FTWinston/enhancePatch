@@ -50,7 +50,7 @@ test('simple objects', () => {
     expect(subsequentPatch).toBeNull();
 });
 
-test('arrays, all in one', () => {
+test('array, all in one', () => {
     const tree = {};
 
     const { proxy, getPatch } = recordChanges(tree);
@@ -97,7 +97,7 @@ test('arrays, all in one', () => {
     expect(subsequentPatch).toBeNull();
 });
 
-test('arrays, separate', () => {
+test('array, separate', () => {
     const tree = {};
 
     const { proxy, getPatch } = recordChanges(tree);
@@ -162,7 +162,50 @@ test('arrays, separate', () => {
     expect(subsequentPatch).toBeNull();
 });
 
-// TODO: array as root
+test('array, as root', () => {
+    const tree: any[] = [];
+
+    const { proxy, getPatch } = recordChanges(tree);
+
+    proxy.push('hi');
+    proxy.push('there');
+    proxy.push({ what: 'up' });
+
+    proxy.splice(1, 1);
+
+    proxy.push('hey');
+    proxy[1].hello = 'there';
+
+    expect(tree).toEqual([
+            'hi',
+            {
+                what: 'up',
+                hello: 'there',
+            },
+            'hey',
+        ]
+    );
+
+    expect(proxy).toEqual(tree);
+
+    const patch = getPatch();
+
+    expect(patch).not.toBeNull();
+
+    if (patch !== null) {
+        const newTree: any[] = [];
+
+        const updatedTree = applyPatch(newTree, patch);
+
+        expect(updatedTree).toEqual(tree);
+
+        expect(newTree).toEqual([]);
+    }
+
+    const subsequentPatch = getPatch();
+
+    expect(subsequentPatch).toBeNull();
+});
 
 // TODO: Map and Set
 
