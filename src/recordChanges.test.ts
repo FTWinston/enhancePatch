@@ -118,28 +118,34 @@ test('arrays, separate', () => {
     proxy.a.push('there');
     proxy.a.push({ what: 'up' });
 
-    proxy.a.splice(1, 1);
+    proxy.a.splice(1, 1, 'whats', 'up');
 
     proxy.a.push('hey');
 
-    proxy.a[1].hello = 'there';
+    proxy.a.shift();
+
+    proxy.a[2].hello = 'there';
+
+    proxy.a.unshift('whaat');
+
+    proxy.a.reverse();
 
     expect(tree).toEqual({
         a: [
-            'hi',
+            'hey',
             {
                 what: 'up',
                 hello: 'there',
             },
-            'hey',
+            'up',
+            'whats',
+            'whaat',
         ],
     });
 
     expect(proxy).toEqual(tree);
 
     const patch = getPatch();
-
-    console.log('second array patch', patch);
 
     expect(patch).not.toBeNull();
 
