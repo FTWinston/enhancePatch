@@ -1,5 +1,6 @@
 import { stringify } from 'enhancejson/lib/stringify';
 import { Operation } from './Operation';
+import { optimisePatch } from './optimisePatch';
 import { ProxyManager } from './ProxyManager';
 
 export function recordChanges(object: any): {
@@ -17,8 +18,10 @@ export function recordChanges(object: any): {
                 return null;
             }
 
-            const result = stringify(patchOperations);
+            const result = stringify(optimisePatch(patchOperations));
+            
             patchOperations.splice(0, patchOperations.length);
+
             return result;
         },
     };
