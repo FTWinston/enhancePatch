@@ -3,8 +3,8 @@ import { Operation } from './Operation';
 import { optimisePatch } from './optimisePatch';
 import { ProxyManager } from './ProxyManager';
 
-export function recordChanges(object: any): {
-    proxy: any;
+export function recordChanges<T>(object: T): {
+    proxy: T;
     getPatch: () => string | null;
 } {
     const patchOperations: Operation[] = [];

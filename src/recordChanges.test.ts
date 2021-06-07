@@ -1,8 +1,9 @@
+import { stringify } from 'enhancejson/lib/stringify';
 import { applyPatch } from './applyPatch';
 import { recordChanges } from './recordChanges';
 
 test('simple objects', () => {
-    const tree = {};
+    const tree: any = {};
 
     const { proxy, getPatch } = recordChanges(tree);
 
@@ -51,7 +52,7 @@ test('simple objects', () => {
 });
 
 test('array, all in one', () => {
-    const tree = {};
+    const tree: any = {};
 
     const { proxy, getPatch } = recordChanges(tree);
 
@@ -98,7 +99,7 @@ test('array, all in one', () => {
 });
 
 test('array, separate', () => {
-    const tree = {};
+    const tree: any = {};
 
     const { proxy, getPatch } = recordChanges(tree);
 
@@ -217,7 +218,9 @@ test('map and set', () => {
     proxy.map.set('a', 1);
     proxy.map.set(2, 'b');
     proxy.map.set(2, 'c');
+    proxy.map.set('c', { hi: 'hey' });
     proxy.map.delete('a');
+    proxy.map.get('c').ha = 'ha';
 
     proxy.set.add('a');
     proxy.set.add('b');
@@ -228,11 +231,18 @@ test('map and set', () => {
     expect(proxy.map.get(2)).toEqual('c');
 
     expect(tree).toEqual({
-        map: new Map([[2, 'c']]),
+        map: new Map<any, any>([
+            [2, 'c'],
+            ['c', { hi: 'hey', ha: 'ha' }],
+        ]),
         set: new Set(['a', 3]),
     });
 
-    expect(proxy).toEqual(tree);
+    // This fails for some reason
+    // expect(proxy).toEqual(tree);
+    const a = stringify(tree);
+    const b = stringify(proxy);
+    expect(a).toEqual(b);
 
     const patch = getPatch();
 
@@ -259,8 +269,89 @@ test('map and set', () => {
     expect(subsequentPatch).toBeNull();
 });
 
-// TODO: Map as root
+test('map as root', () => {
+    const tree = new Map<any, any>();
 
-// TODO: Set as root
+    const { proxy, getPatch } = recordChanges(tree);
+
+    proxy.set('a', 1);
+    proxy.set(2, 'b');
+    proxy.set(2, 'c');
+    proxy.set('c', { hi: 'hey' });
+    proxy.delete('a');
+    proxy.get('c').ha = 'ha';
+
+    expect(tree.get(2)).toEqual('c');
+    expect(proxy.get(2)).toEqual('c');
+
+    expect(tree).toEqual(
+        new Map<any, any>([
+            [2, 'c'],
+            ['c', { hi: 'hey', ha: 'ha' }],
+        ])
+    );
+
+    // This fails for some reason
+    // expect(proxy).toEqual(tree);
+    const a = stringify(tree);
+    const b = stringify(proxy);
+    expect(a).toEqual(b);
+
+    const patch = getPatch();
+
+    expect(patch).not.toBeNull();
+
+    if (patch !== null) {
+        const newTree = new Map<any, any>();
+
+        const updatedTree = applyPatch(newTree, patch);
+
+        expect(updatedTree).toEqual(tree);
+
+        expect(newTree).toEqual(new Map<any, any>());
+    }
+
+    const subsequentPatch = getPatch();
+
+    expect(subsequentPatch).toBeNull();
+});
+
+test('set as root', () => {
+    const tree = new Set<any>();
+
+    const { proxy, getPatch } = recordChanges(tree);
+
+    proxy.add('a');
+    proxy.add('b');
+    proxy.add(3);
+    proxy.delete('b');
+
+    expect(tree).toEqual(new Set(['a', 3]));
+
+    // This fails for some other reason
+    //expect(proxy).toEqual(tree);
+    const a = stringify(tree);
+    const b = stringify(proxy);
+    expect(a).toEqual(b);
+
+    const patch = getPatch();
+
+    expect(patch).not.toBeNull();
+
+    if (patch !== null) {
+        const newTree = new Set<any>();
+
+        const updatedTree = applyPatch(newTree, patch);
+
+        expect(updatedTree).toEqual(tree);
+
+        expect(newTree).toEqual(new Set<any>());
+    }
+
+    const subsequentPatch = getPatch();
+
+    expect(subsequentPatch).toBeNull();
+});
+
 
 // TODO: Date

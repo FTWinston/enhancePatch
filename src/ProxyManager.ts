@@ -229,7 +229,7 @@ export class ProxyManager {
                         if (this.isAllowedMapKey(key)) {
                             val = this.getField(
                                 path,
-                                field,
+                                key,
                                 val,
                                 proxiedChildren
                             );
@@ -336,7 +336,7 @@ export class ProxyManager {
         };
     }
 
-    public createProxy(underlying: BaseObject, path: string) {
+    public createProxy<T extends BaseObject>(underlying: T, path: string) {
         const proxiedChildren = new Set<BaseObject>();
 
         let handler;
@@ -350,7 +350,7 @@ export class ProxyManager {
             handler = this.createObjectHandler(path, proxiedChildren);
         }
 
-        const proxy: BaseObject = new Proxy(underlying, handler);
+        const proxy = new Proxy(underlying, handler) as T;
 
         this.proxies.set(underlying, {
             path,
