@@ -367,8 +367,9 @@ export class ProxyManager {
             return false;
         }
 
-        const type = typeof object;
-        return type === 'function' || (type === 'object' && !!object);
+        return (
+            !!object && typeof object === 'object' && !(object instanceof Date)
+        );
     }
 
     private removeProxy(object: object) {

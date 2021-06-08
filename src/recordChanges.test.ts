@@ -353,5 +353,37 @@ test('set as root', () => {
     expect(subsequentPatch).toBeNull();
 });
 
+test('date', () => {
+    const tree: any = {};
 
-// TODO: Date
+    const { proxy, getPatch } = recordChanges(tree);
+
+    proxy.a = new Date(2000, 0, 0, 6, 32, 15, 52);
+    proxy.b = new Date();
+    proxy.b = new Date(2001, 4, 4, 4, 4, 5, 6);
+
+    expect(tree).toEqual({
+        a: new Date(2000, 0, 0, 6, 32, 15, 52),
+        b: new Date(2001, 4, 4, 4, 4, 5, 6),
+    });
+
+    expect(proxy).toEqual(tree);
+
+    const patch = getPatch();
+
+    expect(patch).not.toBeNull();
+
+    if (patch !== null) {
+        const newTree = {};
+
+        const updatedTree = applyPatch(newTree, patch);
+
+        expect(updatedTree).toEqual(tree);
+
+        expect(newTree).toEqual({});
+    }
+
+    const subsequentPatch = getPatch();
+
+    expect(subsequentPatch).toBeNull();
+});
