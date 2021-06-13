@@ -1,7 +1,9 @@
+import { pathSeparator } from './Operation';
+
 export function splitPath(path?: string) {
     return path === undefined || path === ''
         ? []
         : path
-              .split('/')
-              .map((part) => part.replace(/~1/g, '/').replace(/~0/g, '~'));
+              .split(pathSeparator)
+              .map((part) => part.replace(/~1/g, pathSeparator).replace(/~0/g, '~'));
 }

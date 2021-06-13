@@ -394,9 +394,8 @@ export class ProxyManager {
     ): Operation {
         return {
             p: path,
-            o: OperationType.SingleValue,
-            k: field,
-            v: val,
+            o: OperationType.Set,
+            v: [[field, val]],
         };
     }
 
@@ -404,7 +403,7 @@ export class ProxyManager {
         return {
             p: path,
             o: OperationType.Delete,
-            k: field,
+            k: [field],
         };
     }
 

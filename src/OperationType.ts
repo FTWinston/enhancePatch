@@ -1,6 +1,5 @@
 export enum OperationType {
-    SingleValue = 's',
-    MultipleValues = 'm',
+    Set = 's',
     Delete = 'd',
     Clear = 'c',
 

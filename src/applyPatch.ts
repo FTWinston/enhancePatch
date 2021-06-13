@@ -17,13 +17,9 @@ function applyOperation(tree: any, operation: Operation) {
     }
 
     switch (operation.o) {
-        case OperationType.SingleValue:
-            setValue(parentElement, operation.k, operation.v);
-            break;
-        case OperationType.MultipleValues:
-            const length = Math.min(operation.k.length, operation.v.length);
-            for (let i = 0; i < length; i++) {
-                setValue(parentElement, operation.k[i], operation.v[i]);
+        case OperationType.Set:
+            for (const [key, val] of operation.v) {
+                setValue(parentElement, key, val);
             }
             break;
         case OperationType.Delete:

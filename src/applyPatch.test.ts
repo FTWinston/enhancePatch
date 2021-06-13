@@ -12,36 +12,36 @@ describe('single value', () => {
 
         const patch: Operation[] = [
             {
-                o: OperationType.SingleValue,
+                o: OperationType.Set,
                 //p: '',
-                k: 'a',
-                v: 1,
+                v: [['a', 1]],
             },
             {
-                o: OperationType.SingleValue,
+                o: OperationType.Set,
                 //p: '',
-                k: 'b',
-                v: '2',
+                v: [['b', '1']],
             },
             {
-                o: OperationType.SingleValue,
+                o: OperationType.Set,
                 p: 'child',
-                k: 'c',
-                v: '3',
+                v: [['c', '3']],
             },
             {
-                o: OperationType.SingleValue,
+                o: OperationType.Set,
                 p: '',
-                k: 'b',
-                v: '4',
+                v: [['b', '4']],
             },
             {
-                o: OperationType.SingleValue,
+                o: OperationType.Set,
                 p: 'child/grandchild',
-                k: 'greatgrandchild',
-                v: {
-                    d: 5,
-                },
+                v: [
+                    [
+                        'greatgrandchild',
+                        {
+                            d: 5,
+                        },
+                    ],
+                ],
             },
         ];
 
@@ -66,73 +66,86 @@ describe('single value', () => {
 
         const patch: Operation[] = [
             {
-                o: OperationType.SingleValue,
-                //p: '',
-                k: 'a',
-                v: {
-                    x: 1,
-                    y: 2,
-                    z: '3',
-                },
-            },
-            {
-                o: OperationType.SingleValue,
-                //p: '',
-                k: 'b',
-                v: new Map([
-                    ['x', 1],
-                    ['y', 2],
-                    ['z', 3],
-                ]),
-            },
-            {
-                o: OperationType.SingleValue,
-                k: 'c',
-                v: new Map<any, any>([
-                    ['x', 1],
-                    ['y', 2],
-                    ['z', '3'],
-                ]),
-            },
-            {
-                o: OperationType.SingleValue,
-                p: 'c',
-                k: 'w',
-                v: 4,
-            },
-            {
-                o: OperationType.SingleValue,
-                p: 'c',
-                k: 'x',
-                v: 5,
-            },
-            {
-                o: OperationType.SingleValue,
-                p: '',
-                k: 'b',
-                v: new Set([1, 2, 4, 8]),
-            },
-            {
-                o: OperationType.SingleValue,
-                k: 'd',
-                v: new Map<string, any>([
+                o: OperationType.Set,
+                //p: ''
+                v: [
                     [
-                        'e',
+                        'a',
                         {
                             x: 1,
                             y: 2,
                             z: '3',
                         },
                     ],
+                ],
+            },
+            {
+                o: OperationType.Set,
+                //p: '',
+                v: [
                     [
-                        'f',
-                        new Map<string, any>([
+                        'b',
+                        new Map([
+                            ['x', 1],
+                            ['y', 2],
+                            ['z', 3],
+                        ]),
+                    ],
+                ],
+            },
+            {
+                o: OperationType.Set,
+                v: [
+                    [
+                        'c',
+                        new Map<any, any>([
                             ['x', 1],
                             ['y', 2],
                             ['z', '3'],
                         ]),
                     ],
-                ]),
+                ],
+            },
+            {
+                o: OperationType.Set,
+                p: 'c',
+                v: [['w', 4]],
+            },
+            {
+                o: OperationType.Set,
+                p: 'c',
+                v: [['x', 5]],
+            },
+            {
+                o: OperationType.Set,
+                p: '',
+                v: [['b', new Set([1, 2, 4, 8])]],
+            },
+            {
+                o: OperationType.Set,
+                v: [
+                    [
+                        'd',
+                        new Map<string, any>([
+                            [
+                                'e',
+                                {
+                                    x: 1,
+                                    y: 2,
+                                    z: '3',
+                                },
+                            ],
+                            [
+                                'f',
+                                new Map<string, any>([
+                                    ['x', 1],
+                                    ['y', 2],
+                                    ['z', '3'],
+                                ]),
+                            ],
+                        ]),
+                    ],
+                ],
             },
         ];
 
@@ -172,20 +185,17 @@ describe('single value', () => {
 
         const patch: Operation[] = [
             {
-                o: OperationType.SingleValue,
-                k: 'a',
-                v: new Date(2020, 11, 31),
+                o: OperationType.Set,
+                v: [['a', new Date(2020, 11, 31)]],
             },
             {
-                o: OperationType.SingleValue,
+                o: OperationType.Set,
                 p: 'child',
-                k: 'b',
-                v: new Date(2021, 0, 0, 12, 0, 0),
+                v: [['b', new Date(2021, 0, 0, 12, 0, 0)]],
             },
             {
-                o: OperationType.SingleValue,
-                k: 'a',
-                v: new Date(2021, 11, 31),
+                o: OperationType.Set,
+                v: [['a', new Date(2021, 11, 31)]],
             },
         ];
 
@@ -220,21 +230,21 @@ describe('delete', () => {
         const patch: Operation[] = [
             {
                 o: OperationType.Delete,
-                k: 'a',
+                k: ['a'],
             },
             {
                 o: OperationType.Delete,
-                k: 'b',
+                k: ['b'],
             },
             {
                 o: OperationType.Delete,
                 p: 'child',
-                k: 'd',
+                k: ['d'],
             },
             {
                 o: OperationType.Delete,
                 p: 'child/grandchild',
-                k: 'f',
+                k: ['f'],
             },
         ];
 
@@ -275,22 +285,22 @@ describe('delete', () => {
             {
                 o: OperationType.Delete,
                 p: 'a',
-                k: 'b',
+                k: ['b'],
             },
             {
                 o: OperationType.Delete,
                 p: 'child/grandchild/b',
-                k: 'b',
+                k: ['b'],
             },
             {
                 o: OperationType.Delete,
                 p: 'child/grandchild',
-                k: 'c',
+                k: ['c'],
             },
             {
                 o: OperationType.Delete,
                 p: 'child/d',
-                k: 2,
+                k: [2],
             },
             {
                 o: OperationType.Delete,
@@ -325,7 +335,7 @@ describe('delete', () => {
             {
                 o: OperationType.Delete,
                 p: 'child',
-                k: 'b',
+                k: ['b'],
             },
         ];
 
