@@ -5,5 +5,7 @@ export function splitPath(path?: string) {
         ? []
         : path
               .split(pathSeparator)
-              .map((part) => part.replace(/~1/g, pathSeparator).replace(/~0/g, '~'));
+              .map((part) =>
+                  part.replace(/~1/g, pathSeparator).replace(/~0/g, '~')
+              );
 }
