@@ -45,30 +45,31 @@ export enum PatchType {
 
 export interface ObjectPatch {
     t: typeof PatchType.Object;
-    set?: Record<string, any>;
-    del?: string[];
-    desc?: Record<string, Patch>;
+    s?: Record<string, any>; // keys to set
+    d?: string[]; // keys to delete
+    c?: Record<string, Patch>; // children
 }
 
 export interface ArrayPatch {
     t: typeof PatchType.Array;
-    ops?: ArrayOperation[];
-    desc?: Record<number, Patch>; // A shift/unshift/splice/reverse will need to update all the descendants' numbers, somehow.
+    o?: ArrayOperation[]; // array operations
+    c?: Record<number, Patch>; // children
+    // NOTE: A shift/unshift/splice/reverse will need to update some/all children's numbers, somehow.
 }
 
 export interface MapPatch {
     t: typeof PatchType.Map;
-    setStr?: Record<string, any>;
-    setNum?: Record<number, any>;
-    del?: Array<number | string>;
-    descStr?: Record<string, Patch>;
-    descNum?: Record<number, Patch>;
-    clear?: true;
+    s?: Record<string, any>; // string-key setters
+    S?: Record<number, any>; // numeric-key setters
+    d?: Array<number | string>; // delete keys
+    c?: Record<string, Patch>; // string-keyed children
+    C?: Record<number, Patch>; // numeric-keyed children
+    x?: true; // clear
 }
 
 export interface SetPatch {
     t: typeof PatchType.Set;
-    add?: Array<number | string>;
-    del?: Array<number | string>;
-    clear?: true;
+    a?: Array<number | string>; // elements to add
+    d?: Array<number | string>; // elements to delete
+    x?: true; // clear
 }
