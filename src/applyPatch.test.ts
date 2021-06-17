@@ -23,17 +23,17 @@ describe('single value', () => {
             },
             {
                 o: OperationType.Set,
-                p: 'child',
+                p: ['child'],
                 v: [['c', '3']],
             },
             {
                 o: OperationType.Set,
-                p: '',
+                p: [],
                 v: [['b', '4']],
             },
             {
                 o: OperationType.Set,
-                p: 'child/grandchild',
+                p: ['child','grandchild'],
                 v: [
                     [
                         'greatgrandchild',
@@ -108,17 +108,17 @@ describe('single value', () => {
             },
             {
                 o: OperationType.Set,
-                p: 'c',
+                p: ['c'],
                 v: [['w', 4]],
             },
             {
                 o: OperationType.Set,
-                p: 'c',
+                p: ['c'],
                 v: [['x', 5]],
             },
             {
                 o: OperationType.Set,
-                p: '',
+                p: [],
                 v: [['b', new Set([1, 2, 4, 8])]],
             },
             {
@@ -126,7 +126,7 @@ describe('single value', () => {
                 v: [
                     [
                         'd',
-                        new Map<string, any>([
+                        new Map<string | number, any>([
                             [
                                 'e',
                                 {
@@ -136,7 +136,7 @@ describe('single value', () => {
                                 },
                             ],
                             [
-                                'f',
+                                1,
                                 new Map<string, any>([
                                     ['x', 1],
                                     ['y', 2],
@@ -147,6 +147,15 @@ describe('single value', () => {
                     ],
                 ],
             },
+            {
+                o: OperationType.Set,
+                p: ['d', 1],
+                v: [
+                    [
+                        'y', 5
+                    ]
+                ]
+            }
         ];
 
         const newTree = applyPatch(tree, patch);
@@ -164,13 +173,13 @@ describe('single value', () => {
                 ['y', 2],
                 ['z', '3'],
             ]),
-            d: new Map<string, any>([
+            d: new Map<string | number, any>([
                 ['e', { x: 1, y: 2, z: '3' }],
                 [
-                    'f',
+                    1,
                     new Map<string, any>([
                         ['x', 1],
-                        ['y', 2],
+                        ['y', 5],
                         ['z', '3'],
                     ]),
                 ],
@@ -190,7 +199,7 @@ describe('single value', () => {
             },
             {
                 o: OperationType.Set,
-                p: 'child',
+                p: ['child'],
                 v: [['b', new Date(2021, 0, 0, 12, 0, 0)]],
             },
             {
@@ -238,12 +247,12 @@ describe('delete', () => {
             },
             {
                 o: OperationType.Delete,
-                p: 'child',
+                p: ['child'],
                 k: ['d'],
             },
             {
                 o: OperationType.Delete,
-                p: 'child/grandchild',
+                p: ['child','grandchild'],
                 k: ['f'],
             },
         ];
@@ -284,27 +293,27 @@ describe('delete', () => {
         const patch: Operation[] = [
             {
                 o: OperationType.Delete,
-                p: 'a',
+                p: ['a'],
                 k: ['b'],
             },
             {
                 o: OperationType.Delete,
-                p: 'child/grandchild/b',
+                p: ['child','grandchild','b'],
                 k: ['b'],
             },
             {
                 o: OperationType.Delete,
-                p: 'child/grandchild',
+                p: ['child','grandchild'],
                 k: ['c'],
             },
             {
                 o: OperationType.Delete,
-                p: 'child/d',
+                p: ['child','d'],
                 k: [2],
             },
             {
                 o: OperationType.Delete,
-                p: 'child/d',
+                p: ['child','d'],
                 k: [3, '4'],
             },
         ];
@@ -334,7 +343,7 @@ describe('delete', () => {
         const patch: Operation[] = [
             {
                 o: OperationType.Delete,
-                p: 'child',
+                p: ['child'],
                 k: ['b'],
             },
         ];

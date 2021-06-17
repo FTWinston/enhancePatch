@@ -1,7 +1,7 @@
-import { Operation, pathSeparator } from './Operation';
+import { Operation, Path } from './Operation';
 import { OperationType } from './OperationType';
 
-function hasAncestorPath(currentPath: string, checkPaths: Set<string>) {
+function hasAncestorPath(currentPath: Path, checkPaths: Set<string>) {
     let cumulativePath: string | null = null;
 
     for (const pathPart of currentPath.split(pathSeparator)) {
@@ -19,14 +19,16 @@ function hasAncestorPath(currentPath: string, checkPaths: Set<string>) {
 }
 
 function notePathWasSet(
-    currentPath: string | undefined,
+    currentPath: Path | undefined,
     settingEntries: Array<[string | number, any]>,
-    destination: Set<string>
+    destination: Set<Path>
 ) {
-    const prefix = currentPath ? `${currentPath}${pathSeparator}` : '';
+    if (!currentPath) {
+        currentPath = [];
+    }
 
     for (const [key] of settingEntries) {
-        destination.add(`${prefix}${key}`);
+        destination.add([...currentPath, key]);
     }
 }
 

@@ -1,11 +1,11 @@
 import { isArray, isMap, isSet } from 'enhancejson/lib/typeChecks';
-import type { Operation } from './Operation';
+import type { Operation, Path } from './Operation';
 import { OperationType } from './OperationType';
 
 interface BaseObject {}
 
 interface ProxyInfo {
-    path: string;
+    path: Path;
     proxy: BaseObject;
     underlying: BaseObject;
     proxiedChildren: Set<BaseObject>;
@@ -19,7 +19,7 @@ export class ProxyManager {
     ) {}
 
     private getField(
-        path: string,
+        path: Path,
         field: string,
         val: any,
         proxiedChildren: Set<BaseObject>
@@ -33,7 +33,7 @@ export class ProxyManager {
         if (this.canProxy(val)) {
             proxiedChildren.add(val);
 
-            const childPath = path ? `${path}/${field}` : field;
+            const childPath = path ? [...path, field] : [field];
 
             return this.createProxy(val, childPath);
         }
@@ -42,7 +42,7 @@ export class ProxyManager {
     }
 
     private setField(
-        path: string,
+        path: Path,
         field: string,
         val: any,
         prevVal: any,
@@ -55,7 +55,7 @@ export class ProxyManager {
     }
 
     private deleteField(
-        path: string,
+        path: Path,
         field: string,
         val: any,
         proxiedChildren: Set<BaseObject>
@@ -66,7 +66,7 @@ export class ProxyManager {
         this.patchCallback(this.createDeleteOperation(path, field));
     }
 
-    private clearAllFields(path: string, proxiedChildren: Set<BaseObject>) {
+    private clearAllFields(path: Path, proxiedChildren: Set<BaseObject>) {
         for (const val of proxiedChildren) {
             this.removeProxy(val);
         }
@@ -76,7 +76,7 @@ export class ProxyManager {
     }
 
     private createObjectHandler(
-        path: string,
+        path: Path,
         proxiedChildren: Set<BaseObject>
     ): ProxyHandler<BaseObject> {
         return {
@@ -115,7 +115,7 @@ export class ProxyManager {
     }
 
     private createArrayHandler(
-        path: string,
+        path: Path,
         proxiedChildren: Set<BaseObject>
     ): ProxyHandler<any[]> {
         return {
@@ -215,7 +215,7 @@ export class ProxyManager {
     }
 
     private createMapHandler(
-        path: string,
+        path: Path,
         proxiedChildren: Set<BaseObject>
     ): ProxyHandler<Map<any, any>> {
         return {
@@ -288,7 +288,7 @@ export class ProxyManager {
     }
 
     private createSetHandler(
-        path: string,
+        path: Path,
         proxiedChildren: Set<BaseObject>
     ): ProxyHandler<Set<any>> {
         // For patch purposes treat Sets like Maps, use the values as keys and always use "1" as the pretend value.
@@ -336,7 +336,7 @@ export class ProxyManager {
         };
     }
 
-    public createProxy<T extends BaseObject>(underlying: T, path: string) {
+    public createProxy<T extends BaseObject>(underlying: T, path: Path) {
         const proxiedChildren = new Set<BaseObject>();
 
         let handler;
@@ -388,7 +388,7 @@ export class ProxyManager {
     }
 
     private createSetOperation(
-        path: string,
+        path: Path,
         field: string,
         val: any
     ): Operation {
@@ -399,7 +399,7 @@ export class ProxyManager {
         };
     }
 
-    private createDeleteOperation(path: string, field: string): Operation {
+    private createDeleteOperation(path: Path, field: string): Operation {
         return {
             p: path,
             o: OperationType.Delete,
@@ -407,7 +407,7 @@ export class ProxyManager {
         };
     }
 
-    private createClearOperation(path: string): Operation {
+    private createClearOperation(path: Path): Operation {
         return {
             p: path,
             o: OperationType.Clear,
@@ -415,7 +415,7 @@ export class ProxyManager {
     }
 
     private createSpliceOperation(
-        path: string,
+        path: Path,
         start: number,
         deleteCount: number,
         items: any[]
@@ -427,14 +427,14 @@ export class ProxyManager {
         };
     }
 
-    private createShiftOperation(path: string): Operation {
+    private createShiftOperation(path: Path): Operation {
         return {
             p: path,
             o: OperationType.ArrayShift,
         };
     }
 
-    private createUnshiftOperation(path: string, items: any[]): Operation {
+    private createUnshiftOperation(path: Path, items: any[]): Operation {
         return {
             p: path,
             o: OperationType.ArrayUnshift,
@@ -442,7 +442,7 @@ export class ProxyManager {
         };
     }
 
-    private createReverseOperation(path: string): Operation {
+    private createReverseOperation(path: Path): Operation {
         return {
             p: path,
             o: OperationType.ArrayReverse,

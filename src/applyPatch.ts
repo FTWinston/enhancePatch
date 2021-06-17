@@ -3,14 +3,12 @@ import { OperationType } from './OperationType';
 import { reallocate } from './reallocate';
 import { removeValue } from './removeValue';
 import { setValue } from './setValue';
-import { splitPath } from './splitPath';
 import { parse } from 'enhancejson/lib/parse';
 import { isArray } from 'enhancejson/lib/typeChecks';
 import { clearValue } from './clearValue';
 
 function applyOperation(tree: any, operation: Operation) {
-    const segments = splitPath(operation.p);
-    const [newTree, parentElement] = reallocate(tree, segments);
+    const [newTree, parentElement] = reallocate(tree, operation.p ?? []);
 
     if (newTree === null) {
         return tree;

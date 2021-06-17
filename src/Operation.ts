@@ -1,37 +1,37 @@
 import type { OperationType } from './OperationType';
 
-export const pathSeparator = '/';
+export type Path = Array<string | number>;
 
 export type Operation =
     | {
           o: typeof OperationType.Set;
-          p?: string;
+          p?: Path;
           v: Array<[string | number, any]>;
       }
     | {
           o: typeof OperationType.Delete;
-          p?: string;
+          p?: Path;
           k: Array<string | number>;
       }
     | {
           o: typeof OperationType.Clear;
-          p?: string;
+          p?: Path;
       }
     | {
           o: typeof OperationType.ArraySplice;
-          p?: string;
+          p?: Path;
           v: [number, number, any[]];
       }
     | {
           o: typeof OperationType.ArrayShift;
-          p?: string;
+          p?: Path;
       }
     | {
           o: typeof OperationType.ArrayUnshift;
-          p?: string;
+          p?: Path;
           v: any[];
       }
     | {
           o: typeof OperationType.ArrayReverse;
-          p?: string;
+          p?: Path;
       };

@@ -38,12 +38,12 @@ test('keys on multiple objects', () => {
     const patch: Operation[] = [
         {
             o: OperationType.Set,
-            p: 'a',
+            p: ['a'],
             v: [['1', '1']],
         },
         {
             o: OperationType.Set,
-            p: 'b',
+            p: ['b'],
             v: [['2', '2']],
         },
         {
@@ -52,12 +52,12 @@ test('keys on multiple objects', () => {
         },
         {
             o: OperationType.Set,
-            p: 'b',
+            p: ['b'],
             v: [['5', '5']],
         },
         {
             o: OperationType.Set,
-            p: 'a',
+            p: ['a'],
             v: [['6', '6']],
         },
         {
@@ -66,7 +66,7 @@ test('keys on multiple objects', () => {
         },
         {
             o: OperationType.Set,
-            p: 'a',
+            p: ['a'],
             v: [['1', 'x']],
         },
     ];
@@ -106,7 +106,7 @@ test('amending newly set parent', () => {
         },
         {
             o: OperationType.Set,
-            p: 'a',
+            p: ['a'],
             v: [['b', '1']],
         },
     ];
@@ -140,7 +140,7 @@ test('amending newly set grandparent', () => {
         },
         {
             o: OperationType.Set,
-            p: 'a/b',
+            p: ['a','b'],
             v: [['c', 1]],
         },
     ];

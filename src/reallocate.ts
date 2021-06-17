@@ -1,8 +1,9 @@
 import { clone } from './clone';
 import { arrayIndex } from './arrayIndex';
 import { isArray, isMap, isObject } from 'enhancejson/lib/typeChecks';
+import { Path } from './Operation';
 
-function reallocateSegment(target: any, key: string) {
+function reallocateSegment(target: any, key: string | number) {
     if (isArray(target)) {
         const index = arrayIndex(key);
 
@@ -34,7 +35,7 @@ function reallocateSegment(target: any, key: string) {
     }
 }
 
-export function reallocate(tree: any, segments: string[]): [any, any] {
+export function reallocate(tree: any, segments: Path): [any, any] {
     tree = clone(tree);
 
     let target = tree;
