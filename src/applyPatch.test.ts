@@ -1,360 +1,344 @@
 import { applyPatch } from './applyPatch';
-import type { Operation } from './Operation';
-import { OperationType } from './OperationType';
+import { Patch, PatchType } from './Patch';
 
-describe('single value', () => {
-    test('basic types', () => {
-        const tree = {
+test('objects', () => {
+    const tree = {
+        a: 'x',
+        x: 'x',
+        child: {
+            y: 'y',
+            grandchild: {
+                z: [1, 2, 3],
+            },
+        },
+    };
+
+    const patch: Patch = {
+        t: PatchType.Object,
+        s: { a: 1, b: '2' },
+        d: ['x'],
+        c: {
             child: {
-                grandchild: {},
-            },
-        };
-
-        const patch: Operation[] = [
-            {
-                o: OperationType.Set,
-                //p: '',
-                v: [['a', 1]],
-            },
-            {
-                o: OperationType.Set,
-                //p: '',
-                v: [['b', '1']],
-            },
-            {
-                o: OperationType.Set,
-                p: ['child'],
-                v: [['c', '3']],
-            },
-            {
-                o: OperationType.Set,
-                p: [],
-                v: [['b', '4']],
-            },
-            {
-                o: OperationType.Set,
-                p: ['child','grandchild'],
-                v: [
-                    [
-                        'greatgrandchild',
-                        {
-                            d: 5,
-                        },
-                    ],
-                ],
-            },
-        ];
-
-        const newTree = applyPatch(tree, patch);
-
-        expect(newTree).toEqual({
-            a: 1,
-            b: '4',
-            child: {
-                c: '3',
-                grandchild: {
-                    greatgrandchild: {
-                        d: 5,
+                t: PatchType.Object,
+                s: { c: '3' },
+                d: ['y'],
+                c: {
+                    grandchild: {
+                        t: PatchType.Object,
+                        s: { greatgrandchild: { d: 4 } },
+                        d: ['z'],
                     },
                 },
             },
-        });
+        },
+    };
+
+    const newTree = applyPatch(tree, patch);
+
+    expect(newTree).toEqual({
+        a: 1,
+        b: '2',
+        child: {
+            c: '3',
+            grandchild: {
+                greatgrandchild: {
+                    d: 4,
+                },
+            },
+        },
     });
+});
 
-    test('maps and sets', () => {
-        const tree = {};
+test('new maps and sets', () => {
+    const tree = {};
 
-        const patch: Operation[] = [
-            {
-                o: OperationType.Set,
-                //p: ''
-                v: [
-                    [
-                        'a',
-                        {
-                            x: 1,
-                            y: 2,
-                            z: '3',
-                        },
-                    ],
-                ],
-            },
-            {
-                o: OperationType.Set,
-                //p: '',
-                v: [
-                    [
-                        'b',
-                        new Map([
-                            ['x', 1],
-                            ['y', 2],
-                            ['z', 3],
-                        ]),
-                    ],
-                ],
-            },
-            {
-                o: OperationType.Set,
-                v: [
-                    [
-                        'c',
-                        new Map<any, any>([
-                            ['x', 1],
-                            ['y', 2],
-                            ['z', '3'],
-                        ]),
-                    ],
-                ],
-            },
-            {
-                o: OperationType.Set,
-                p: ['c'],
-                v: [['w', 4]],
-            },
-            {
-                o: OperationType.Set,
-                p: ['c'],
-                v: [['x', 5]],
-            },
-            {
-                o: OperationType.Set,
-                p: [],
-                v: [['b', new Set([1, 2, 4, 8])]],
-            },
-            {
-                o: OperationType.Set,
-                v: [
-                    [
-                        'd',
-                        new Map<string | number, any>([
-                            [
-                                'e',
-                                {
-                                    x: 1,
-                                    y: 2,
-                                    z: '3',
-                                },
-                            ],
-                            [
-                                1,
-                                new Map<string, any>([
-                                    ['x', 1],
-                                    ['y', 2],
-                                    ['z', '3'],
-                                ]),
-                            ],
-                        ]),
-                    ],
-                ],
-            },
-            {
-                o: OperationType.Set,
-                p: ['d', 1],
-                v: [
-                    [
-                        'y', 5
-                    ]
-                ]
-            }
-        ];
-
-        const newTree = applyPatch(tree, patch);
-
-        expect(newTree).toEqual({
-            a: {
-                x: 1,
-                y: 2,
-                z: '3',
-            },
-            b: new Set([1, 2, 4, 8]),
-            c: new Map<any, any>([
-                ['w', 4],
-                ['x', 5],
+    const patch: Patch = {
+        t: PatchType.Object,
+        s: {
+            a: new Map<any, any>([
+                ['x', 1],
                 ['y', 2],
                 ['z', '3'],
             ]),
-            d: new Map<string | number, any>([
-                ['e', { x: 1, y: 2, z: '3' }],
+            b: new Set([1, 2, 4, 8]),
+            c: new Map<string | number, any>([
+                [
+                    'd',
+                    {
+                        x: '1',
+                        y: '2',
+                        z: 3,
+                    },
+                ],
                 [
                     1,
                     new Map<string, any>([
                         ['x', 1],
-                        ['y', 5],
+                        ['y', 2],
                         ['z', '3'],
                     ]),
                 ],
+                ['e', new Set(['x', 'y', 'z'])],
             ]),
-        });
-    });
+        },
+    };
 
-    test('dates', () => {
-        const tree = {
-            child: {},
-        };
+    const newTree = applyPatch(tree, patch);
 
-        const patch: Operation[] = [
-            {
-                o: OperationType.Set,
-                v: [['a', new Date(2020, 11, 31)]],
-            },
-            {
-                o: OperationType.Set,
-                p: ['child'],
-                v: [['b', new Date(2021, 0, 0, 12, 0, 0)]],
-            },
-            {
-                o: OperationType.Set,
-                v: [['a', new Date(2021, 11, 31)]],
-            },
-        ];
-
-        const newTree = applyPatch(tree, patch);
-
-        expect(newTree).toEqual({
-            a: new Date(2021, 11, 31),
-            child: {
-                b: new Date(2021, 0, 0, 12, 0, 0),
-            },
-        });
+    expect(newTree).toEqual({
+        a: new Map<any, any>([
+            ['x', 1],
+            ['y', 2],
+            ['z', '3'],
+        ]),
+        b: new Set([1, 2, 4, 8]),
+        c: new Map<string | number, any>([
+            ['d', { x: '1', y: '2', z: 3 }],
+            [
+                1,
+                new Map<string, any>([
+                    ['x', 1],
+                    ['y', 2],
+                    ['z', '3'],
+                ]),
+            ],
+            ['e', new Set(['x', 'y', 'z'])],
+        ]),
     });
 });
 
-// TODO: multi value
+test('existing map', () => {
+    const tree = {
+        a: new Map<string | number, any>([
+            ['a', 1],
+            ['b', 2],
+            ['c', 3],
+            [1, 'a'],
+            [2, 'b'],
+            [3, 'c'],
+        ]),
+        b: new Map<string | number, any>([
+            ['a', 1],
+            ['b', 2],
+            ['c', 3],
+            [1, 'a'],
+            [2, 'b'],
+            [3, 'c'],
+        ]),
+        c: new Map<string | number, any>([
+            ['a', 1],
+            ['b', 2],
+            ['c', 3],
+            [1, 'a'],
+            [2, 'b'],
+            [3, 'c'],
+        ]),
+        d: new Map<string | number, any>([
+            ['a', 1],
+            ['b', 2],
+            ['c', 3],
+            [1, 'a'],
+            [2, 'b'],
+            [3, 'c'],
+        ]),
+        e: new Map<string | number, any>([
+            [
+                'x',
+                new Map<string | number, any>([
+                    ['a', 1],
+                    ['b', 2],
+                    ['c', 3],
+                    [1, 'a'],
+                    [2, 'b'],
+                    [3, 'c'],
+                ]),
+            ],
+            [
+                9,
+                new Map<string | number, any>([
+                    ['a', 1],
+                    ['b', 2],
+                    ['c', 3],
+                    [1, 'a'],
+                    [2, 'b'],
+                    [3, 'c'],
+                ]),
+            ],
+        ]),
+    };
 
-describe('delete', () => {
-    test('basic types', () => {
-        const tree = {
-            a: 1,
-            b: '2',
-            c: 3,
-            child: {
-                d: 4,
-                grandchild: {
-                    e: '5',
-                    f: 6,
+    const patch: Patch = {
+        t: PatchType.Object,
+        c: {
+            a: {
+                t: PatchType.Map,
+                s: {
+                    d: 4,
+                },
+                S: {
+                    4: 'D',
+                },
+                d: ['a', 'b', 2, 3],
+            },
+            b: {
+                t: PatchType.Map,
+                s: {
+                    d: 4,
+                },
+                S: {
+                    4: 'D',
                 },
             },
-        };
-
-        const patch: Operation[] = [
-            {
-                o: OperationType.Delete,
-                k: ['a'],
+            c: {
+                t: PatchType.Map,
+                d: ['a', 'b', 2, 3],
             },
-            {
-                o: OperationType.Delete,
-                k: ['b'],
+            d: {
+                t: PatchType.Map,
+                s: {
+                    d: 4,
+                },
+                S: {
+                    4: 'D',
+                },
+                d: true,
             },
-            {
-                o: OperationType.Delete,
-                p: ['child'],
-                k: ['d'],
-            },
-            {
-                o: OperationType.Delete,
-                p: ['child','grandchild'],
-                k: ['f'],
-            },
-        ];
-
-        const newTree = applyPatch(tree, patch);
-
-        expect(newTree).toEqual({
-            c: 3,
-            child: {
-                grandchild: {
-                    e: '5',
+            e: {
+                t: PatchType.Map,
+                c: {
+                    x: {
+                        t: PatchType.Map,
+                        s: {
+                            d: 4,
+                        },
+                        S: {
+                            4: 'D',
+                        },
+                        d: ['a', 'b', 2, 3],
+                    },
+                },
+                C: {
+                    4: {
+                        t: PatchType.Map,
+                        s: {
+                            d: 4,
+                        },
+                        S: {
+                            4: 'D',
+                        },
+                        d: ['a', 'b', 2, 3],
+                    },
                 },
             },
-        });
+        },
+    };
+
+    const newTree = applyPatch(tree, patch);
+
+    expect(newTree).toEqual({
+        a: new Map<string | number, any>([
+            ['c', 3],
+            [1, 'a'],
+            ['d', 4],
+            [4, 'D'],
+        ]),
+        b: new Map<string | number, any>([
+            ['a', 1],
+            ['b', 2],
+            ['c', 3],
+            [1, 'a'],
+            [2, 'b'],
+            [3, 'c'],
+            ['d', 4],
+            [4, 'D'],
+        ]),
+        c: new Map<string | number, any>([
+            ['c', 3],
+            [1, 'a'],
+        ]),
+        d: new Map<string | number, any>([
+            ['d', 4],
+            [4, 'D'],
+        ]),
+        e: new Map<string | number, any>([
+            [
+                'x',
+                new Map<string | number, any>([
+                    ['c', 3],
+                    [1, 'a'],
+                    ['d', 4],
+                    [4, 'D'],
+                ]),
+            ],
+            [
+                9,
+                new Map<string | number, any>([
+                    ['c', 3],
+                    [1, 'a'],
+                    ['d', 4],
+                    [4, 'D'],
+                ]),
+            ],
+        ]),
     });
+});
 
-    test('maps and sets', () => {
-        const tree = {
-            a: new Map([
-                ['a', 1],
-                ['b', 2],
-            ]),
-            child: {
-                grandchild: {
-                    b: new Map([
-                        ['a', 1],
-                        ['b', 2],
-                    ]),
-                    c: new Map([
-                        ['a', 1],
-                        ['b', 2],
-                    ]),
-                },
-                d: new Set([1, 2, 3, '4', '5']),
-            },
-        };
+test('existing set', () => {
+    const tree = {
+        a: new Set<any>([1, 2, 3]),
+        b: new Set<any>([1, 2, 3]),
+    };
 
-        const patch: Operation[] = [
-            {
-                o: OperationType.Delete,
-                p: ['a'],
-                k: ['b'],
+    const patch: Patch = {
+        t: PatchType.Object,
+        c: {
+            a: {
+                t: PatchType.Set,
+                a: ['a', 4, 5],
+                d: [2, 3],
             },
-            {
-                o: OperationType.Delete,
-                p: ['child','grandchild','b'],
-                k: ['b'],
+            b: {
+                t: PatchType.Set,
+                a: ['a', 4, 5],
+                d: true,
             },
-            {
-                o: OperationType.Delete,
-                p: ['child','grandchild'],
-                k: ['c'],
-            },
-            {
-                o: OperationType.Delete,
-                p: ['child','d'],
-                k: [2],
-            },
-            {
-                o: OperationType.Delete,
-                p: ['child','d'],
-                k: [3, '4'],
-            },
-        ];
+        },
+    };
 
-        const newTree = applyPatch(tree, patch);
+    const newTree = applyPatch(tree, patch);
 
-        expect(newTree).toEqual({
-            a: new Map([['a', 1]]),
-            child: {
-                grandchild: {
-                    b: new Map([['a', 1]]),
-                },
-                d: new Set([1, '5']),
-            },
-        });
+    expect(newTree).toEqual({
+        a: new Set<any>([1, 'a', 4, 5]),
+        b: new Set<any>(['a', 4, 5]),
     });
+});
 
-    test('dates', () => {
-        const tree = {
-            a: new Date(2020, 0, 0),
+test('dates', () => {
+    const tree = {
+        child: {},
+    };
+
+    const patch: Patch = {
+        t: PatchType.Object,
+        s: {
+            a: new Date(2020, 11, 31),
+        },
+        c: {
             child: {
-                b: new Date(),
-                c: new Date(2020, 0, 0),
+                t: PatchType.Object,
+                s: {
+                    b: new Date(2021, 0, 0, 12, 0, 0),
+                },
             },
-        };
+        },
+    };
 
-        const patch: Operation[] = [
-            {
-                o: OperationType.Delete,
-                p: ['child'],
-                k: ['b'],
-            },
-        ];
+    const newTree = applyPatch(tree, patch);
 
-        const newTree = applyPatch(tree, patch);
-
-        expect(newTree).toEqual({
-            a: new Date(2020, 0, 0),
-            child: {
-                c: new Date(2020, 0, 0),
-            },
-        });
+    expect(newTree).toEqual({
+        a: new Date(2020, 11, 31),
+        child: {
+            b: new Date(2021, 0, 0, 12, 0, 0),
+        },
     });
 });

@@ -1,11 +1,10 @@
 import { isArray, isMap, isSet } from 'enhancejson/lib/typeChecks';
-import type { Operation, Path } from './Operation';
-import { OperationType } from './OperationType';
+import { Patch } from './Patch';
 
 interface BaseObject {}
 
 interface ProxyInfo {
-    path: Path;
+    patchObject?: Patch;
     proxy: BaseObject;
     underlying: BaseObject;
     proxiedChildren: Set<BaseObject>;
@@ -387,11 +386,7 @@ export class ProxyManager {
         }
     }
 
-    private createSetOperation(
-        path: Path,
-        field: string,
-        val: any
-    ): Operation {
+    private createSetOperation(path: Path, field: string, val: any): Operation {
         return {
             p: path,
             o: OperationType.Set,

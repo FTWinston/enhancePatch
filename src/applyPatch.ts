@@ -1,57 +1,67 @@
-import { Operation } from './Operation';
-import { OperationType } from './OperationType';
-import { reallocate } from './reallocate';
-import { removeValue } from './removeValue';
-import { setValue } from './setValue';
+import {
+    ArrayPatch,
+    MapPatch,
+    ObjectPatch,
+    Patch,
+    PatchType,
+    SetPatch,
+} from './Patch';
 import { parse } from 'enhancejson/lib/parse';
-import { isArray } from 'enhancejson/lib/typeChecks';
-import { clearValue } from './clearValue';
+import { clone } from './clone';
+import {
+    ArrayOperation,
+    ArrayOperationType,
+    ArraySpliceOperation2,
+} from './ArrayOperation';
 
-function applyOperation(tree: any, operation: Operation) {
-    const [newTree, parentElement] = reallocate(tree, operation.p ?? []);
-
-    if (newTree === null) {
-        return tree;
+function patchObject(tree: Record<string, any>, patch: ObjectPatch) {
+    if (patch.s) {
+        tree = {
+            ...tree,
+            ...patch.s,
+        };
     }
 
+    if (patch.d) {
+        for (const key of patch.d) {
+            delete tree[key];
+        }
+    }
+
+    if (patch.c) {
+        for (const [key, childPatch] of Object.entries(patch.c)) {
+            const childTree = tree[key];
+            applyPatchInternal(childTree, childPatch);
+        }
+    }
+
+    return tree;
+}
+
+function applyArrayOperation(tree: any[], operation: ArrayOperation) {
     switch (operation.o) {
-        case OperationType.Set:
-            for (const [key, val] of operation.v) {
-                setValue(parentElement, key, val);
-            }
+        case ArrayOperationType.Set:
+            tree[operation.i] = operation.v;
             break;
-        case OperationType.Delete:
-            if (isArray(operation.k)) {
-                for (let i = operation.k.length - 1; i >= 0; i--) {
-                    removeValue(parentElement, operation.k[i]);
-                }
+        case ArrayOperationType.Delete:
+            tree.splice(operation.i, 1);
+            break;
+        case ArrayOperationType.Splice:
+            if ((operation as any).n) {
+                const op = operation as ArraySpliceOperation2;
+                tree.splice(op.i, op.d, ...op.n);
             } else {
-                removeValue(parentElement, operation.k);
+                tree.splice(operation.i, operation.d);
             }
             break;
-        case OperationType.Clear:
-            clearValue(parentElement);
+        case ArrayOperationType.Shift:
+            tree.shift();
             break;
-        case OperationType.ArraySplice:
-            if (isArray(parentElement)) {
-                const [index, deleteCount, items] = operation.v;
-                parentElement.splice(index, deleteCount, ...items);
-            }
+        case ArrayOperationType.Unshift:
+            tree.unshift(...operation.n);
             break;
-        case OperationType.ArrayShift:
-            if (isArray(parentElement)) {
-                parentElement.shift();
-            }
-            break;
-        case OperationType.ArrayUnshift:
-            if (isArray(parentElement)) {
-                parentElement.unshift(...operation.v);
-            }
-            break;
-        case OperationType.ArrayReverse:
-            if (isArray(parentElement)) {
-                parentElement.reverse();
-            }
+        case ArrayOperationType.Reverse:
+            tree.reverse();
             break;
         default:
             const val: never = operation;
@@ -59,22 +69,109 @@ function applyOperation(tree: any, operation: Operation) {
                 `Unexpected operation type: ${JSON.stringify(operation)}`
             );
     }
-
-    return newTree;
 }
 
-export function applyPatch(tree: any, patch: string | Operation | Operation[]) {
+function patchArray(tree: any[], patch: ArrayPatch) {
+    if (patch.o) {
+        for (const op of patch.o) {
+            applyArrayOperation(tree, op);
+        }
+    }
+
+    if (patch.c) {
+        for (const [key, childPatch] of Object.entries(patch.c)) {
+            const childTree = tree[key as unknown as number];
+            applyPatchInternal(childTree, childPatch);
+        }
+    }
+
+    return tree;
+}
+
+function mapAndSetDelete(
+    tree: Map<any, any> | Set<any>,
+    patch: MapPatch | SetPatch
+) {
+    if (patch.d) {
+        if (patch.d === true) {
+            tree.clear();
+        } else {
+            for (const key of patch.d) {
+                tree.delete(key);
+            }
+        }
+    }
+}
+
+function patchMap(tree: Map<string | number, any>, patch: MapPatch) {
+    mapAndSetDelete(tree, patch);
+
+    if (patch.s) {
+        for (const [key, val] of Object.entries(patch.s)) {
+            tree.set(key, val);
+        }
+    }
+
+    if (patch.S) {
+        for (const [key, val] of Object.entries(patch.S)) {
+            tree.set(parseFloat(key), val);
+        }
+    }
+
+    if (patch.c) {
+        for (const [key, childPatch] of Object.entries(patch.c)) {
+            const childTree = tree.get(key);
+            applyPatchInternal(childTree, childPatch);
+        }
+    }
+
+    if (patch.C) {
+        for (const [key, childPatch] of Object.entries(patch.C)) {
+            const childTree = tree.get(parseFloat(key));
+            applyPatchInternal(childTree, childPatch);
+        }
+    }
+
+    return tree;
+}
+
+function patchSet(tree: Set<any>, patch: SetPatch) {
+    mapAndSetDelete(tree, patch);
+
+    if (patch.a) {
+        for (const key of patch.a) {
+            tree.add(key);
+        }
+    }
+
+    return tree;
+}
+
+function applyPatchInternal(tree: {}, patch: Patch) {
+    tree = clone(tree);
+
+    switch (
+        patch.t // TODO: or should we look at tree itself? clone just did that!
+    ) {
+        case PatchType.Object:
+            return patchObject(tree, patch);
+        case PatchType.Array:
+            return patchArray(tree as any[], patch);
+        case PatchType.Map:
+            return patchMap(tree as Map<string | number, any>, patch);
+        case PatchType.Set:
+            return patchSet(tree as Set<any>, patch);
+        default:
+            return tree;
+    }
+}
+
+export function applyPatch(tree: {}, patch: string | Patch) {
     if (typeof patch === 'string') {
-        patch = parse(patch) as Operation | Operation[];
+        patch = parse(patch) as Patch;
     }
 
-    if (!isArray(patch)) {
-        patch = [patch];
-    }
-
-    for (const operation of patch) {
-        tree = applyOperation(tree, operation);
-    }
+    applyPatchInternal(tree, patch);
 
     return tree;
 }
