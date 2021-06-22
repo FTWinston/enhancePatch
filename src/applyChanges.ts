@@ -24,7 +24,7 @@ function patchObject(tree: Record<string, any>, patch: ObjectPatch) {
     if (patch.c) {
         for (const [key, childPatch] of Object.entries(patch.c)) {
             let childTree = tree[key];
-            childTree = applyPatchInternal(childTree, childPatch);
+            childTree = applyPatch(childTree, childPatch);
             tree[key] = childTree;
         }
     }
@@ -76,7 +76,7 @@ function patchArray(tree: any[], patch: ArrayPatch) {
         for (const [key, childPatch] of Object.entries(patch.c)) {
             const numKey = key as unknown as number;
             let childTree = tree[numKey];
-            childTree = applyPatchInternal(childTree, childPatch);
+            childTree = applyPatch(childTree, childPatch);
             tree[numKey] = childTree;
         }
     }
@@ -117,7 +117,7 @@ function patchMap(tree: Map<string | number, any>, patch: MapPatch) {
     if (patch.c) {
         for (const [key, childPatch] of Object.entries(patch.c)) {
             let childTree = tree.get(key);
-            childTree = applyPatchInternal(childTree, childPatch);
+            childTree = applyPatch(childTree, childPatch);
             tree.set(key, childTree);
         }
     }
@@ -126,7 +126,7 @@ function patchMap(tree: Map<string | number, any>, patch: MapPatch) {
         for (const [key, childPatch] of Object.entries(patch.C)) {
             let numKey = parseFloat(key);
             let childTree = tree.get(numKey);
-            childTree = applyPatchInternal(childTree, childPatch);
+            childTree = applyPatch(childTree, childPatch);
             tree.set(numKey, childTree);
         }
     }
@@ -146,7 +146,7 @@ function patchSet(tree: Set<any>, patch: SetPatch) {
     return tree;
 }
 
-function applyPatchInternal(tree: {}, patch: Patch) {
+function applyPatch(tree: {}, patch: Patch) {
     if (isArray(tree)) {
         const array = tree.slice();
         return patchArray(array, patch as ArrayPatch);
@@ -169,10 +169,10 @@ function applyPatchInternal(tree: {}, patch: Patch) {
     }
 }
 
-export function applyPatch(tree: {}, patch: string | Patch) {
+export function applyChanges(tree: {}, patch: string | Patch) {
     if (typeof patch === 'string') {
         patch = parse(patch) as Patch;
     }
 
-    return applyPatchInternal(tree, patch);
+    return applyPatch(tree, patch);
 }
