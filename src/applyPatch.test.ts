@@ -49,6 +49,8 @@ test('objects', () => {
     });
 });
 
+// TODO: various array tests
+
 test('new maps and sets', () => {
     const tree = {};
 
@@ -218,7 +220,7 @@ test('existing map', () => {
                     },
                 },
                 C: {
-                    4: {
+                    9: {
                         t: PatchType.Map,
                         s: {
                             d: 4,

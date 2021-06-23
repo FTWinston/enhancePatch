@@ -1,18 +1,11 @@
-import {
-    ArrayPatch,
-    MapPatch,
-    ObjectPatch,
-    Patch,
-    PatchType,
-    SetPatch,
-} from './Patch';
+import { ArrayPatch, MapPatch, ObjectPatch, Patch, SetPatch } from './Patch';
 import { parse } from 'enhancejson/lib/parse';
-import { clone } from './clone';
 import {
     ArrayOperation,
     ArrayOperationType,
     ArraySpliceOperation2,
 } from './ArrayOperation';
+import { isArray, isMap, isObject, isSet } from 'enhancejson/lib/typeChecks';
 
 function patchObject(tree: Record<string, any>, patch: ObjectPatch) {
     if (patch.s) {
@@ -30,8 +23,9 @@ function patchObject(tree: Record<string, any>, patch: ObjectPatch) {
 
     if (patch.c) {
         for (const [key, childPatch] of Object.entries(patch.c)) {
-            const childTree = tree[key];
-            applyPatchInternal(childTree, childPatch);
+            let childTree = tree[key];
+            childTree = applyPatchInternal(childTree, childPatch);
+            tree[key] = childTree;
         }
     }
 
@@ -80,8 +74,10 @@ function patchArray(tree: any[], patch: ArrayPatch) {
 
     if (patch.c) {
         for (const [key, childPatch] of Object.entries(patch.c)) {
-            const childTree = tree[key as unknown as number];
-            applyPatchInternal(childTree, childPatch);
+            const numKey = key as unknown as number;
+            let childTree = tree[numKey];
+            childTree = applyPatchInternal(childTree, childPatch);
+            tree[numKey] = childTree;
         }
     }
 
@@ -120,15 +116,18 @@ function patchMap(tree: Map<string | number, any>, patch: MapPatch) {
 
     if (patch.c) {
         for (const [key, childPatch] of Object.entries(patch.c)) {
-            const childTree = tree.get(key);
-            applyPatchInternal(childTree, childPatch);
+            let childTree = tree.get(key);
+            childTree = applyPatchInternal(childTree, childPatch);
+            tree.set(key, childTree);
         }
     }
 
     if (patch.C) {
         for (const [key, childPatch] of Object.entries(patch.C)) {
-            const childTree = tree.get(parseFloat(key));
-            applyPatchInternal(childTree, childPatch);
+            let numKey = parseFloat(key);
+            let childTree = tree.get(numKey);
+            childTree = applyPatchInternal(childTree, childPatch);
+            tree.set(numKey, childTree);
         }
     }
 
@@ -148,21 +147,25 @@ function patchSet(tree: Set<any>, patch: SetPatch) {
 }
 
 function applyPatchInternal(tree: {}, patch: Patch) {
-    tree = clone(tree);
+    if (isArray(tree)) {
+        const array = tree.slice();
+        return patchArray(array, patch as ArrayPatch);
+    } else if (isMap(tree)) {
+        const map = new Map(tree);
+        return patchMap(map, patch as MapPatch);
+    } else if (isSet(tree)) {
+        const set = new Set(tree);
+        return patchSet(set, patch as SetPatch);
+    } else if (isObject(tree)) {
+        const object = { ...tree };
+        return patchObject(object, patch as ObjectPatch);
+    } else {
+        const msg =
+            tree === null || tree === undefined
+                ? 'Cannot apply patch, target object is missing'
+                : `Cannot apply patch, target object has unexpected type: ${typeof tree}`;
 
-    switch (
-        patch.t // TODO: or should we look at tree itself? clone just did that!
-    ) {
-        case PatchType.Object:
-            return patchObject(tree, patch);
-        case PatchType.Array:
-            return patchArray(tree as any[], patch);
-        case PatchType.Map:
-            return patchMap(tree as Map<string | number, any>, patch);
-        case PatchType.Set:
-            return patchSet(tree as Set<any>, patch);
-        default:
-            return tree;
+        throw new Error(`${msg}: ${JSON.stringify(patch)}`);
     }
 }
 
@@ -171,7 +174,5 @@ export function applyPatch(tree: {}, patch: string | Patch) {
         patch = parse(patch) as Patch;
     }
 
-    applyPatchInternal(tree, patch);
-
-    return tree;
+    return applyPatchInternal(tree, patch);
 }
