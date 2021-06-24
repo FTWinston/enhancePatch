@@ -14,17 +14,14 @@ test('objects', () => {
     };
 
     const patch: Patch = {
-        t: PatchType.Object,
         s: { a: 1, b: '2' },
         d: ['x'],
         c: {
             child: {
-                t: PatchType.Object,
                 s: { c: '3' },
                 d: ['y'],
                 c: {
                     grandchild: {
-                        t: PatchType.Object,
                         s: { greatgrandchild: { d: 4 } },
                         d: ['z'],
                     },
@@ -55,7 +52,6 @@ test('new maps and sets', () => {
     const tree = {};
 
     const patch: Patch = {
-        t: PatchType.Object,
         s: {
             a: new Map<any, any>([
                 ['x', 1],
@@ -170,10 +166,8 @@ test('existing map', () => {
     };
 
     const patch: Patch = {
-        t: PatchType.Object,
         c: {
             a: {
-                t: PatchType.Map,
                 s: {
                     d: 4,
                 },
@@ -183,7 +177,6 @@ test('existing map', () => {
                 d: ['a', 'b', 2, 3],
             },
             b: {
-                t: PatchType.Map,
                 s: {
                     d: 4,
                 },
@@ -192,11 +185,9 @@ test('existing map', () => {
                 },
             },
             c: {
-                t: PatchType.Map,
                 d: ['a', 'b', 2, 3],
             },
             d: {
-                t: PatchType.Map,
                 s: {
                     d: 4,
                 },
@@ -206,10 +197,8 @@ test('existing map', () => {
                 d: true,
             },
             e: {
-                t: PatchType.Map,
                 c: {
                     x: {
-                        t: PatchType.Map,
                         s: {
                             d: 4,
                         },
@@ -221,7 +210,6 @@ test('existing map', () => {
                 },
                 C: {
                     9: {
-                        t: PatchType.Map,
                         s: {
                             d: 4,
                         },
@@ -292,15 +280,12 @@ test('existing set', () => {
     };
 
     const patch: Patch = {
-        t: PatchType.Object,
         c: {
             a: {
-                t: PatchType.Set,
                 a: ['a', 4, 5],
                 d: [2, 3],
             },
             b: {
-                t: PatchType.Set,
                 a: ['a', 4, 5],
                 d: true,
             },
@@ -321,13 +306,11 @@ test('dates', () => {
     };
 
     const patch: Patch = {
-        t: PatchType.Object,
         s: {
             a: new Date(2020, 11, 31),
         },
         c: {
             child: {
-                t: PatchType.Object,
                 s: {
                     b: new Date(2021, 0, 0, 12, 0, 0),
                 },

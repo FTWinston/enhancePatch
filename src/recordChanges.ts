@@ -1,27 +1,11 @@
-import { stringify } from 'enhancejson/lib/stringify';
-import { Operation } from './Operation';
-import { ProxyManager } from './ProxyManager';
+import { managersByProxy, ProxyManager } from './ProxyManager';
 
-export function recordChanges<T>(object: T): {
-    proxy: T;
-    getPatch: () => string | null;
-} {
-    const patchOperations: Operation[] = [];
+export function recordChanges<T extends object>(tree: T): T {
+    const manager = new ProxyManager(tree);
 
-    const manager = new ProxyManager((op) => patchOperations.push(op));
+    const treeProxy = manager.rootProxy;
 
-    return {
-        proxy: manager.createProxy(object, ['']),
-        getPatch: () => {
-            if (patchOperations.length === 0) {
-                return null;
-            }
+    managersByProxy.set(treeProxy, manager);
 
-            const result = stringify(patchOperations);
-
-            patchOperations.splice(0, patchOperations.length);
-
-            return result;
-        },
-    };
+    return treeProxy;
 }

@@ -1,89 +1,85 @@
 import { isArray, isMap, isSet } from 'enhancejson/lib/typeChecks';
-import { Patch } from './Patch';
-
-interface BaseObject {}
+import { ArrayPatch, MapPatch, ObjectPatch, Patch, SetPatch } from './Patch';
 
 interface ProxyInfo {
-    patchObject?: Patch;
-    proxy: BaseObject;
-    underlying: BaseObject;
-    proxiedChildren: Set<BaseObject>;
+    patch: Patch;
+    parent?: ProxyInfo;
+    addToOutput?: () => void;
+    proxy: object;
+    underlying: object;
+    proxiedChildren: Set<object>;
 }
 
-export class ProxyManager {
-    private readonly proxies = new WeakMap<BaseObject, ProxyInfo>();
+interface TypedProxyInfo<T extends object> extends ProxyInfo {
+    proxy: T;
+    underlying: T;
+}
 
-    constructor(
-        private readonly patchCallback: (operation: Operation) => void
-    ) {}
+interface PatchProxyInfo<T extends Patch> extends ProxyInfo {
+    patch: T;
+}
 
-    private getField(
-        path: Path,
-        field: string,
-        val: any,
-        proxiedChildren: Set<BaseObject>
-    ) {
-        const fieldProxyInfo = this.proxies.get(val);
+interface IProxyManager {
+    readonly rootPatch: Patch | null;
+}
 
-        if (fieldProxyInfo) {
-            return fieldProxyInfo.proxy;
-        }
+export const managersByProxy = new WeakMap<object, IProxyManager>();
 
-        if (this.canProxy(val)) {
-            proxiedChildren.add(val);
+export class ProxyManager<TRoot extends object> implements IProxyManager {
+    private readonly proxies = new WeakMap<object, ProxyInfo>();
 
-            const childPath = path ? [...path, field] : [field];
+    private readonly rootInfo: TypedProxyInfo<TRoot>;
 
-            return this.createProxy(val, childPath);
-        }
-
-        return val;
+    public get rootProxy() {
+        return this.rootInfo.proxy;
     }
 
-    private setField(
-        path: Path,
-        field: string,
-        val: any,
-        prevVal: any,
-        proxiedChildren: Set<BaseObject>
-    ) {
-        proxiedChildren.delete(prevVal);
-        this.removeProxy(prevVal);
-
-        this.patchCallback(this.createSetOperation(path, field, val));
+    // If addToOutput is still set, nothing has yet been added to the output. So there's no patch.
+    public get rootPatch() {
+        return this.rootInfo.addToOutput ? null : this.rootInfo.patch;
     }
 
-    private deleteField(
-        path: Path,
-        field: string,
-        val: any,
-        proxiedChildren: Set<BaseObject>
-    ) {
-        proxiedChildren.delete(val);
-        this.removeProxy(val);
-
-        this.patchCallback(this.createDeleteOperation(path, field));
-    }
-
-    private clearAllFields(path: Path, proxiedChildren: Set<BaseObject>) {
-        for (const val of proxiedChildren) {
-            this.removeProxy(val);
-        }
-        proxiedChildren.clear();
-
-        this.patchCallback(this.createClearOperation(path));
+    constructor(tree: TRoot) {
+        this.rootInfo = this.createProxy(tree, undefined, () => {});
     }
 
     private createObjectHandler(
-        path: Path,
-        proxiedChildren: Set<BaseObject>
-    ): ProxyHandler<BaseObject> {
+        info: PatchProxyInfo<ObjectPatch>
+    ): ProxyHandler<object> {
         return {
             get: (target, field) => {
                 let val = (target as any)[field];
 
                 if (typeof field === 'string' && field !== 'prototype') {
-                    val = this.getField(path, field, val, proxiedChildren);
+                    const existingChildInfo = this.proxies.get(val);
+
+                    if (existingChildInfo) {
+                        return existingChildInfo.proxy;
+                    }
+
+                    if (this.canProxy(val)) {
+                        info.proxiedChildren.add(val);
+
+                        const addChildToOutput = () => {
+                            if (info.patch.c === undefined) {
+                                info.patch.c = {};
+                            }
+                            info.patch.c[field] = childInfo.patch;
+
+                            if (info.addToOutput) {
+                                info.addToOutput();
+                                delete info.addToOutput;
+                            }
+                        };
+
+                        const childInfo = this.createProxy(
+                            val,
+                            info,
+                            addChildToOutput
+                        );
+
+                        return childInfo.underlying;
+                    }
                 }
 
                 return val;
@@ -94,7 +90,25 @@ export class ProxyManager {
                 (target as any)[field] = val;
 
                 if (typeof field === 'string') {
-                    this.setField(path, field, val, prevVal, proxiedChildren);
+                    if (info.patch.s === undefined) {
+                        info.patch.s = {};
+                    }
+                    info.patch.s[field] = val;
+
+                    if (info.patch.d !== undefined) {
+                        const removeAt = info.patch.d.indexOf(field);
+                        if (removeAt !== -1) {
+                            info.patch.d.splice(removeAt, 1);
+                        }
+                    }
+
+                    info.proxiedChildren.delete(prevVal);
+                    this.removeProxy(prevVal);
+
+                    if (info.addToOutput) {
+                        info.addToOutput();
+                        delete info.addToOutput;
+                    }
                 }
 
                 return true;
@@ -105,7 +119,22 @@ export class ProxyManager {
                 delete (target as any)[field];
 
                 if (typeof field === 'string') {
-                    this.deleteField(path, field, val, proxiedChildren);
+                    if (info.patch.d === undefined) {
+                        info.patch.d = [];
+                    }
+                    info.patch.d.push(field);
+
+                    if (info.patch.s !== undefined) {
+                        delete info.patch.s[field];
+                    }
+
+                    info.proxiedChildren.delete(val);
+                    this.removeProxy(val);
+
+                    if (info.addToOutput) {
+                        info.addToOutput();
+                        delete info.addToOutput;
+                    }
                 }
 
                 return true;
@@ -114,10 +143,10 @@ export class ProxyManager {
     }
 
     private createArrayHandler(
-        path: Path,
-        proxiedChildren: Set<BaseObject>
+        info: PatchProxyInfo<ArrayPatch>
     ): ProxyHandler<any[]> {
         return {
+            /*
             get: (target, field) => {
                 let val = (target as any)[field];
 
@@ -200,10 +229,11 @@ export class ProxyManager {
 
                 return true;
             },
+            */
         };
     }
 
-    private isAllowedMapKey(key: any) {
+    private isAllowedMapKey(key: any): key is string | number {
         switch (typeof key) {
             case 'string':
             case 'number':
@@ -214,8 +244,7 @@ export class ProxyManager {
     }
 
     private createMapHandler(
-        path: Path,
-        proxiedChildren: Set<BaseObject>
+        info: PatchProxyInfo<MapPatch>
     ): ProxyHandler<Map<any, any>> {
         return {
             get: (target, field) => {
@@ -226,12 +255,50 @@ export class ProxyManager {
                         let val = target.get(key);
 
                         if (this.isAllowedMapKey(key)) {
-                            val = this.getField(
-                                path,
-                                key,
-                                val,
-                                proxiedChildren
-                            );
+                            const existingChildInfo = this.proxies.get(val);
+
+                            if (existingChildInfo) {
+                                return existingChildInfo.proxy;
+                            }
+
+                            if (this.canProxy(val)) {
+                                info.proxiedChildren.add(val);
+
+                                const addChildToOutput =
+                                    typeof key === 'string'
+                                        ? () => {
+                                              if (info.patch.c === undefined) {
+                                                  info.patch.c = {};
+                                              }
+                                              info.patch.c[key] =
+                                                  childInfo.patch;
+
+                                              if (info.addToOutput) {
+                                                  info.addToOutput();
+                                                  delete info.addToOutput;
+                                              }
+                                          }
+                                        : () => {
+                                              if (info.patch.C === undefined) {
+                                                  info.patch.C = {};
+                                              }
+                                              info.patch.C[key] =
+                                                  childInfo.patch;
+
+                                              if (info.addToOutput) {
+                                                  info.addToOutput();
+                                                  delete info.addToOutput;
+                                              }
+                                          };
+
+                                const childInfo = this.createProxy(
+                                    val,
+                                    info,
+                                    addChildToOutput
+                                );
+
+                                return childInfo.underlying;
+                            }
                         }
 
                         return val;
@@ -243,13 +310,32 @@ export class ProxyManager {
                         target.set(key, val);
 
                         if (this.isAllowedMapKey(key)) {
-                            this.setField(
-                                path,
-                                key,
-                                val,
-                                prevVal,
-                                proxiedChildren
-                            );
+                            if (typeof key === 'string') {
+                                if (info.patch.s === undefined) {
+                                    info.patch.s = {};
+                                }
+                                info.patch.s[key] = val;
+                            } else {
+                                if (info.patch.S === undefined) {
+                                    info.patch.S = {};
+                                }
+                                info.patch.S[key] = val;
+                            }
+
+                            if (isArray(info.patch.d)) {
+                                const removeAt = info.patch.d.indexOf(key);
+                                if (removeAt !== -1) {
+                                    info.patch.d.splice(removeAt, 1);
+                                }
+                            }
+
+                            info.proxiedChildren.delete(prevVal);
+                            this.removeProxy(prevVal);
+
+                            if (info.addToOutput) {
+                                info.addToOutput();
+                                delete info.addToOutput;
+                            }
                         }
 
                         return this;
@@ -261,7 +347,28 @@ export class ProxyManager {
                         target.delete(key);
 
                         if (this.isAllowedMapKey(key)) {
-                            this.deleteField(path, key, val, proxiedChildren);
+                            if (info.patch.d !== true) {
+                                if (info.patch.d === undefined) {
+                                    info.patch.d = [];
+                                }
+                                info.patch.d.push(key);
+                            }
+
+                            if (typeof key === 'string') {
+                                if (info.patch.s !== undefined) {
+                                    delete info.patch.s[key];
+                                }
+                            } else if (info.patch.S !== undefined) {
+                                delete info.patch.S[key];
+                            }
+
+                            info.proxiedChildren.delete(val);
+                            this.removeProxy(val);
+
+                            if (info.addToOutput) {
+                                info.addToOutput();
+                                delete info.addToOutput;
+                            }
                         }
 
                         return this;
@@ -269,7 +376,19 @@ export class ProxyManager {
                 } else if (field === 'clear') {
                     func = () => {
                         target.clear();
-                        this.clearAllFields(path, proxiedChildren);
+                        info.patch.d = true;
+                        delete info.patch.s;
+                        delete info.patch.S;
+
+                        for (const child of info.proxiedChildren) {
+                            this.removeProxy(child);
+                        }
+                        info.proxiedChildren.clear();
+
+                        if (info.addToOutput) {
+                            info.addToOutput();
+                            delete info.addToOutput;
+                        }
                     };
                 } else {
                     let val = (target as any)[field];
@@ -287,8 +406,7 @@ export class ProxyManager {
     }
 
     private createSetHandler(
-        path: Path,
-        proxiedChildren: Set<BaseObject>
+        info: PatchProxyInfo<SetPatch>
     ): ProxyHandler<Set<any>> {
         // For patch purposes treat Sets like Maps, use the values as keys and always use "1" as the pretend value.
         return {
@@ -300,17 +418,49 @@ export class ProxyManager {
                         target.add(val);
 
                         if (this.isAllowedMapKey(val)) {
-                            this.setField(path, val, 1, 1, proxiedChildren);
+                            if (info.patch.a === undefined) {
+                                info.patch.a = [];
+                            }
+                            info.patch.a.push(val);
+
+                            if (isArray(info.patch.d)) {
+                                const removeAt = info.patch.d.indexOf(val);
+                                if (removeAt !== -1) {
+                                    info.patch.d.splice(removeAt, 1);
+                                }
+                            }
+
+                            if (info.addToOutput) {
+                                info.addToOutput();
+                                delete info.addToOutput;
+                            }
                         }
 
                         return this;
                     };
                 } else if (field === 'delete') {
-                    func = (key: any) => {
-                        target.delete(key);
+                    func = (val: any) => {
+                        target.delete(val);
 
-                        if (this.isAllowedMapKey(key)) {
-                            this.deleteField(path, key, 1, proxiedChildren);
+                        if (this.isAllowedMapKey(val)) {
+                            if (info.patch.d !== true) {
+                                if (info.patch.d === undefined) {
+                                    info.patch.d = [];
+                                }
+                                info.patch.d.push(val);
+                            }
+
+                            if (info.patch.a !== undefined) {
+                                const removeAt = info.patch.a.indexOf(val);
+                                if (removeAt !== -1) {
+                                    info.patch.a.splice(removeAt, 1);
+                                }
+                            }
+
+                            if (info.addToOutput) {
+                                info.addToOutput();
+                                delete info.addToOutput;
+                            }
                         }
 
                         return this;
@@ -318,7 +468,14 @@ export class ProxyManager {
                 } else if (field === 'clear') {
                     func = () => {
                         target.clear();
-                        this.clearAllFields(path, proxiedChildren);
+
+                        info.patch.d = true;
+                        delete info.patch.a;
+
+                        if (info.addToOutput) {
+                            info.addToOutput();
+                            delete info.addToOutput;
+                        }
                     };
                 } else {
                     let val = (target as any)[field];
@@ -335,30 +492,40 @@ export class ProxyManager {
         };
     }
 
-    public createProxy<T extends BaseObject>(underlying: T, path: Path) {
-        const proxiedChildren = new Set<BaseObject>();
+    public createProxy<T extends object>(
+        underlying: T,
+        parent?: ProxyInfo,
+        addToOutput?: () => void
+    ): TypedProxyInfo<T> {
+        const info: TypedProxyInfo<T> = {
+            parent,
+            addToOutput,
+            patch: {},
+            proxy: new Proxy(underlying, {}), // TODO: avoid this needless instantiation?
+            proxiedChildren: new Set<object>(),
+            underlying,
+        };
 
-        let handler;
+        let handler: ProxyHandler<any>;
+
         if (isArray(underlying)) {
-            handler = this.createArrayHandler(path, proxiedChildren);
+            handler = this.createArrayHandler(
+                info as PatchProxyInfo<ArrayPatch>
+            );
         } else if (isMap(underlying)) {
-            handler = this.createMapHandler(path, proxiedChildren);
+            handler = this.createMapHandler(info as PatchProxyInfo<MapPatch>);
         } else if (isSet(underlying)) {
-            handler = this.createSetHandler(path, proxiedChildren);
+            handler = this.createSetHandler(info as PatchProxyInfo<SetPatch>);
         } else {
-            handler = this.createObjectHandler(path, proxiedChildren);
+            handler = this.createObjectHandler(
+                info as PatchProxyInfo<ObjectPatch>
+            );
         }
 
-        const proxy = new Proxy(underlying, handler) as T;
+        info.proxy = new Proxy(underlying, handler);
+        this.proxies.set(underlying, info);
 
-        this.proxies.set(underlying, {
-            path,
-            proxy,
-            proxiedChildren,
-            underlying,
-        });
-
-        return proxy;
+        return info;
     }
 
     private canProxy(object: any) {
@@ -386,6 +553,7 @@ export class ProxyManager {
         }
     }
 
+    /*
     private createSetOperation(path: Path, field: string, val: any): Operation {
         return {
             p: path,
@@ -443,4 +611,5 @@ export class ProxyManager {
             o: OperationType.ArrayReverse,
         };
     }
+    */
 }
