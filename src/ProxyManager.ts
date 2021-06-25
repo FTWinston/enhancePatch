@@ -8,6 +8,7 @@ interface ProxyInfo {
     proxy: object;
     underlying: object;
     proxiedChildren: Set<object>;
+    newlyAddedChildren: Set<object>;
 }
 
 interface TypedProxyInfo<T extends object> extends ProxyInfo {
@@ -57,9 +58,7 @@ export class ProxyManager<TRoot extends object> implements IProxyManager {
                         return existingChildInfo.proxy;
                     }
 
-                    if (this.canProxy(val)) {
-                        info.proxiedChildren.add(val);
-
+                    if (this.canProxy(info, val)) {
                         const addChildToOutput = () => {
                             if (info.patch.c === undefined) {
                                 info.patch.c = {};
@@ -102,6 +101,7 @@ export class ProxyManager<TRoot extends object> implements IProxyManager {
                         }
                     }
 
+                    info.newlyAddedChildren.add(val);
                     info.proxiedChildren.delete(prevVal);
                     this.removeProxy(prevVal);
 
@@ -261,9 +261,7 @@ export class ProxyManager<TRoot extends object> implements IProxyManager {
                                 return existingChildInfo.proxy;
                             }
 
-                            if (this.canProxy(val)) {
-                                info.proxiedChildren.add(val);
-
+                            if (this.canProxy(info, val)) {
                                 const addChildToOutput =
                                     typeof key === 'string'
                                         ? () => {
@@ -322,6 +320,7 @@ export class ProxyManager<TRoot extends object> implements IProxyManager {
                                 }
                             }
 
+                            info.newlyAddedChildren.add(val);
                             info.proxiedChildren.delete(prevVal);
                             this.removeProxy(prevVal);
 
@@ -496,8 +495,13 @@ export class ProxyManager<TRoot extends object> implements IProxyManager {
             patch: {},
             proxy: new Proxy(underlying, {}), // TODO: avoid this needless instantiation?
             proxiedChildren: new Set<object>(),
+            newlyAddedChildren: new Set<object>(),
             underlying,
         };
+
+        if (parent) {
+            parent.proxiedChildren.add(underlying);
+        }
 
         let handler: ProxyHandler<any>;
 
@@ -521,8 +525,12 @@ export class ProxyManager<TRoot extends object> implements IProxyManager {
         return info;
     }
 
-    private canProxy(object: any) {
+    private canProxy(parentInfo: ProxyInfo, object: any) {
         if (this.proxies.has(object)) {
+            return false;
+        }
+
+        if (parentInfo.newlyAddedChildren.has(object)) {
             return false;
         }
 
