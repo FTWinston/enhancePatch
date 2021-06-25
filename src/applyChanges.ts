@@ -103,14 +103,8 @@ function patchMap(tree: Map<string | number, any>, patch: MapPatch) {
     mapAndSetDelete(tree, patch);
 
     if (patch.s) {
-        for (const [key, val] of Object.entries(patch.s)) {
+        for (const [key, val] of patch.s) {
             tree.set(key, val);
-        }
-    }
-
-    if (patch.S) {
-        for (const [key, val] of Object.entries(patch.S)) {
-            tree.set(parseFloat(key), val);
         }
     }
 

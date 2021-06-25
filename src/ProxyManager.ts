@@ -78,7 +78,7 @@ export class ProxyManager<TRoot extends object> implements IProxyManager {
                             addChildToOutput
                         );
 
-                        return childInfo.underlying;
+                        return childInfo.proxy;
                     }
                 }
 
@@ -297,7 +297,7 @@ export class ProxyManager<TRoot extends object> implements IProxyManager {
                                     addChildToOutput
                                 );
 
-                                return childInfo.underlying;
+                                return childInfo.proxy;
                             }
                         }
 
@@ -310,17 +310,10 @@ export class ProxyManager<TRoot extends object> implements IProxyManager {
                         target.set(key, val);
 
                         if (this.isAllowedMapKey(key)) {
-                            if (typeof key === 'string') {
-                                if (info.patch.s === undefined) {
-                                    info.patch.s = {};
-                                }
-                                info.patch.s[key] = val;
-                            } else {
-                                if (info.patch.S === undefined) {
-                                    info.patch.S = {};
-                                }
-                                info.patch.S[key] = val;
+                            if (info.patch.s === undefined) {
+                                info.patch.s = [];
                             }
+                            info.patch.s.push([key, val]);
 
                             if (isArray(info.patch.d)) {
                                 const removeAt = info.patch.d.indexOf(key);
@@ -354,12 +347,13 @@ export class ProxyManager<TRoot extends object> implements IProxyManager {
                                 info.patch.d.push(key);
                             }
 
-                            if (typeof key === 'string') {
-                                if (info.patch.s !== undefined) {
-                                    delete info.patch.s[key];
+                            if (info.patch.s !== undefined) {
+                                const removeAt = info.patch.s.findIndex(
+                                    (el) => el[0] === key
+                                );
+                                if (removeAt !== -1) {
+                                    info.patch.s.splice(removeAt, 1);
                                 }
-                            } else if (info.patch.S !== undefined) {
-                                delete info.patch.S[key];
                             }
 
                             info.proxiedChildren.delete(val);
@@ -378,7 +372,6 @@ export class ProxyManager<TRoot extends object> implements IProxyManager {
                         target.clear();
                         info.patch.d = true;
                         delete info.patch.s;
-                        delete info.patch.S;
 
                         for (const child of info.proxiedChildren) {
                             this.removeProxy(child);

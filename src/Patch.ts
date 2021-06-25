@@ -21,15 +21,16 @@ export interface ArrayPatch {
     // NOTE: A shift/unshift/splice/reverse will need to update some/all children's numbers, somehow.
 }
 
+type MapKey = string | number;
+
 export interface MapPatch {
-    s?: Record<string, any>; // string-key setters
-    S?: Record<number, any>; // numeric-key setters
+    s?: Array<[MapKey, any]>; // elements to set
+    d?: true | MapKey[]; // keys to delete
     c?: Record<string, Patch>; // string-keyed children
-    C?: Record<number, Patch>; // numeric-keyed children
-    d?: true | Array<number | string>; // clear all, or delete keys
+    C?: Record<number, Patch>; // number-keyed children
 }
 
 export interface SetPatch {
-    a?: Array<number | string>; // elements to add
-    d?: true | Array<number | string>; // clear all, or delete keys
+    a?: MapKey[]; // elements to add
+    d?: true | MapKey[]; // clear all, or delete keys
 }
