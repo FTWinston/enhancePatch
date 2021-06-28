@@ -18,7 +18,6 @@ export type ArrayOperation =
 
 export interface ArraySetOperation {
     o: typeof ArrayOperationType.Set;
-    k: string;
     i: number;
     v: any;
 }

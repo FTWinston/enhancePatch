@@ -116,21 +116,23 @@ test('array, separate', () => {
 
     expect(firstPatchedTree).toEqual(tree);
 
-    proxy.a.push('hi');
-    proxy.a.push('there');
-    proxy.a.push({ what: 'up' });
+    const proxy2 = recordChanges(tree);
 
-    proxy.a.splice(1, 1, 'whats', 'up');
+    proxy2.a.push('hi');
+    proxy2.a.push('there');
+    proxy2.a.push({ what: 'up' });
 
-    proxy.a.push('hey');
+    proxy2.a.splice(1, 1, 'whats', 'up');
 
-    proxy.a.shift();
+    proxy2.a.push('hey');
 
-    proxy.a[2].hello = 'there';
+    proxy2.a.shift();
 
-    proxy.a.unshift('whaat');
+    proxy2.a[2].hello = 'there';
 
-    proxy.a.reverse();
+    proxy2.a.unshift('whaat');
+
+    proxy2.a.reverse();
 
     expect(tree).toEqual({
         a: [
@@ -145,14 +147,14 @@ test('array, separate', () => {
         ],
     });
 
-    expect(proxy).toEqual(tree);
+    expect(proxy2).toEqual(tree);
 
-    const patch = finishRecording(proxy);
+    const patch2 = finishRecording(proxy2);
 
-    expect(patch).not.toBeNull();
+    expect(patch2).not.toBeNull();
 
-    if (patch !== null) {
-        const updatedTree = applyChanges(firstPatchedTree, patch);
+    if (patch2 !== null) {
+        const updatedTree = applyChanges(firstPatchedTree, patch2);
 
         expect(updatedTree).toEqual(tree);
 
