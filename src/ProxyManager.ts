@@ -8,7 +8,6 @@ interface ProxyInfo {
     addToOutput?: () => void;
     proxy: object;
     underlying: object;
-    proxiedChildren: Set<object>;
     newlyAddedChildren: Set<object>;
 }
 
@@ -107,7 +106,6 @@ export class ProxyManager<TRoot extends object> implements IProxyManager {
                     }
 
                     info.newlyAddedChildren.add(val);
-                    info.proxiedChildren.delete(prevVal);
                     this.removeProxy(prevVal);
 
                     if (info.addToOutput) {
@@ -133,7 +131,6 @@ export class ProxyManager<TRoot extends object> implements IProxyManager {
                         delete info.patch.s[field];
                     }
 
-                    info.proxiedChildren.delete(val);
                     this.removeProxy(val);
 
                     if (info.addToOutput) {
@@ -207,7 +204,6 @@ export class ProxyManager<TRoot extends object> implements IProxyManager {
                     ) => {
                         for (let i = start; i < start + deleteCount; i++) {
                             const removing = target[i];
-                            info.proxiedChildren.delete(removing);
                             this.removeProxy(removing);
                         }
 
@@ -242,7 +238,6 @@ export class ProxyManager<TRoot extends object> implements IProxyManager {
 
                         const shifted = target.shift();
 
-                        info.proxiedChildren.delete(shifted);
                         this.removeProxy(shifted);
 
                         return shifted;
@@ -341,7 +336,6 @@ export class ProxyManager<TRoot extends object> implements IProxyManager {
                         });
 
                         info.newlyAddedChildren.add(val);
-                        info.proxiedChildren.delete(prevVal);
                         this.removeProxy(prevVal);
                     }
                 }
@@ -361,7 +355,6 @@ export class ProxyManager<TRoot extends object> implements IProxyManager {
                             i: index,
                         });
 
-                        info.proxiedChildren.delete(val);
                         this.removeProxy(val);
                     }
                 }
@@ -459,7 +452,6 @@ export class ProxyManager<TRoot extends object> implements IProxyManager {
                             }
 
                             info.newlyAddedChildren.add(val);
-                            info.proxiedChildren.delete(prevVal);
                             this.removeProxy(prevVal);
 
                             if (info.addToOutput) {
@@ -493,7 +485,6 @@ export class ProxyManager<TRoot extends object> implements IProxyManager {
                                 }
                             }
 
-                            info.proxiedChildren.delete(val);
                             this.removeProxy(val);
 
                             if (info.addToOutput) {
@@ -510,10 +501,9 @@ export class ProxyManager<TRoot extends object> implements IProxyManager {
                         info.patch.d = true;
                         delete info.patch.s;
 
-                        for (const child of info.proxiedChildren) {
+                        for (const child of info.underlying as Map<any, any>) {
                             this.removeProxy(child);
                         }
-                        info.proxiedChildren.clear();
 
                         if (info.addToOutput) {
                             info.addToOutput();
@@ -632,14 +622,9 @@ export class ProxyManager<TRoot extends object> implements IProxyManager {
             addToOutput,
             patch: {},
             proxy: new Proxy(underlying, {}), // TODO: avoid this needless instantiation?
-            proxiedChildren: new Set<object>(),
             newlyAddedChildren: new Set<object>(),
             underlying,
         };
-
-        if (parent) {
-            parent.proxiedChildren.add(underlying);
-        }
 
         let handler: ProxyHandler<any>;
 
@@ -678,77 +663,6 @@ export class ProxyManager<TRoot extends object> implements IProxyManager {
     }
 
     private removeProxy(object: object) {
-        const proxyInfo = this.proxies.get(object);
-
-        if (!proxyInfo) {
-            return;
-        }
-
         this.proxies.delete(object);
-
-        // Recursively delete any child proxies still being held onto.
-        for (const childObject of proxyInfo.proxiedChildren) {
-            this.removeProxy(childObject);
-        }
     }
-
-    /*
-    private createSetOperation(path: Path, field: string, val: any): Operation {
-        return {
-            p: path,
-            o: OperationType.Set,
-            v: [[field, val]],
-        };
-    }
-
-    private createDeleteOperation(path: Path, field: string): Operation {
-        return {
-            p: path,
-            o: OperationType.Delete,
-            k: [field],
-        };
-    }
-
-    private createClearOperation(path: Path): Operation {
-        return {
-            p: path,
-            o: OperationType.Clear,
-        };
-    }
-
-    private createSpliceOperation(
-        path: Path,
-        start: number,
-        deleteCount: number,
-        items: any[]
-    ): Operation {
-        return {
-            p: path,
-            o: OperationType.ArraySplice,
-            v: [start, deleteCount, items],
-        };
-    }
-
-    private createShiftOperation(path: Path): Operation {
-        return {
-            p: path,
-            o: OperationType.ArrayShift,
-        };
-    }
-
-    private createUnshiftOperation(path: Path, items: any[]): Operation {
-        return {
-            p: path,
-            o: OperationType.ArrayUnshift,
-            v: items,
-        };
-    }
-
-    private createReverseOperation(path: Path): Operation {
-        return {
-            p: path,
-            o: OperationType.ArrayReverse,
-        };
-    }
-    */
 }
