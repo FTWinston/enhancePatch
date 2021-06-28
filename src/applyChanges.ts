@@ -140,19 +140,19 @@ function patchSet(tree: Set<any>, patch: SetPatch) {
     return tree;
 }
 
-function applyPatch(tree: {}, patch: Patch) {
+function applyPatch<T extends object>(tree: T, patch: Patch): T {
     if (isArray(tree)) {
         const array = tree.slice();
-        return patchArray(array, patch as ArrayPatch);
+        return patchArray(array, patch as ArrayPatch) as T;
     } else if (isMap(tree)) {
         const map = new Map(tree);
-        return patchMap(map, patch as MapPatch);
+        return patchMap(map, patch as MapPatch) as T;
     } else if (isSet(tree)) {
         const set = new Set(tree);
-        return patchSet(set, patch as SetPatch);
+        return patchSet(set, patch as SetPatch) as T;
     } else if (isObject(tree)) {
         const object = { ...tree };
-        return patchObject(object, patch as ObjectPatch);
+        return patchObject(object, patch as ObjectPatch) as T;
     } else {
         const msg =
             tree === null || tree === undefined
@@ -163,7 +163,10 @@ function applyPatch(tree: {}, patch: Patch) {
     }
 }
 
-export function applyChanges(tree: {}, patch: string | Patch) {
+export function applyChanges<T extends object>(
+    tree: T,
+    patch: string | Patch
+): T {
     if (typeof patch === 'string') {
         patch = parse(patch) as Patch;
     }
