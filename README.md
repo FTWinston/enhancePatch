@@ -2,7 +2,7 @@
 
 Record changes to an object tree into an efficient json "patch" object, and use this to apply the recorded changes to a different object tree.
 
-json patch is an inefficient way of representing a large number of changes to a complex object tree.
+When making many changes to a complex object tree, json patch is a fairly inefficient way of recording those changes.
 Instead of one patch object per operation, enhancepatch groups any number of operations into a single "patch" object.
 This smartly handles array manipulation, to keep the "patch" as small as possible.
 
