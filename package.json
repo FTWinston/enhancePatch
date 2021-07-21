@@ -1,6 +1,6 @@
 {
-  "name": "enhancepatch",
-  "version": "0.3.1",
+  "name": "megapatch",
+  "version": "0.4.0",
   "description": "Record/apply changes to an object tree",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -14,7 +14,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/FTWinston/enhancepatch.git"
+    "url": "git+https://github.com/FTWinston/megapatch.git"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.10.2",

@@ -1,20 +1,20 @@
-# enhancePatch
+# Megapatch
 
 Record changes to an object tree into an efficient json "patch" object, and use this to apply the recorded changes to a different object tree.
 
 When making many changes to a complex object tree, json patch is a fairly inefficient way of recording those changes.
-Instead of one patch object per operation, enhancepatch groups any number of operations into a single "patch" object.
-This smartly handles array manipulation, to keep the "patch" as small as possible.
+Instead of one patch object per operation, megapatch groups any number of operations into a single "patch" object.
+This smartly handles repeated updates of the same object, and array manipulation, to keep the "patch" as small as possible.
 
 ## Installation
-Run `npm install --save enhancepatch`
+Run `npm install --save megapatch`
 
 ## Usage
 
-enhancePatch can record and recreate changes to javascript objects, arrays, Maps and Sets. It cannot recreate classes.
+Megapatch can record and recreate changes to javascript objects, arrays, Maps and Sets. It cannot recreate classes.
 
 ```javascript
-import { recordChanges, finishRecording, applyChanges } from 'enhancepatch';
+import { recordChanges, finishRecording, applyChanges } from 'megapatch';
 
 const data = { existing: [1, 2, 3] };
 
