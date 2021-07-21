@@ -47,3 +47,11 @@ const updatedData = applyChanges(newData, patch);
 expect(updatedData).toEqual(data);
 expect(updatedData).not.toEqual(newData);
 ```
+
+Megapatch uses [enhanceJSON](https://github.com/FTWinston/enhanceJSON) to stringify and parse JSON.
+
+If you wish to handle stringification yourself, you can use `finishRecordingRaw` instead of `finishRecording`, to return the patch in object format, instead of getting the stringified version.
+
+You will need to stringify this patch yourself. Note that if you don't use `enhanceJSON` to to do, Maps and Sets will not be supported.
+
+The `applyChanges` function will accept a patch object or a stringified patch.
