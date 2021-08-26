@@ -2,13 +2,6 @@ import { ArrayOperation } from './ArrayOperation';
 
 export type Patch = ObjectPatch | ArrayPatch | MapPatch | SetPatch;
 
-export enum PatchType {
-    Object = 1,
-    Array = 2,
-    Map = 3,
-    Set = 4,
-}
-
 export interface ObjectPatch {
     s?: Record<string, any>; // keys to set
     d?: string[]; // keys to delete
