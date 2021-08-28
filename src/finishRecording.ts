@@ -18,6 +18,6 @@ export function finishRecordingRaw<T extends object>(proxy: T): Patch | null {
 
 export function finishRecording<T extends object>(proxy: T): string | null {
     const patch = finishRecordingRaw(proxy);
-    
+
     return patch === null ? null : stringify(patch);
 }
