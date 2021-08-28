@@ -7,7 +7,20 @@ function filterObjectKeys(object: object, fields: FieldSet) {
 
     for (const [key, value] of Object.entries(object)) {
         if (fields.has(key)) {
-            result.key = value;
+            result[key] = value;
+        }
+    }
+
+    return result;
+}
+
+function filterNumericObjectKeys(object: object, fields: FieldSet) {
+    const result: Record<string, any> = {};
+
+    for (const [key, value] of Object.entries(object)) {
+        const numKey = parseFloat(key);
+        if (fields.has(numKey)) {
+            result[key] = value;
         }
     }
 
@@ -68,12 +81,12 @@ export function filterPatch(patch: Patch, fields: FieldSet): Patch {
     }
 
     if (sourcePatch.C) {
-        resultPatch.C = filterObjectKeys(sourcePatch.C, fields);
+        resultPatch.C = filterNumericObjectKeys(sourcePatch.C, fields);
     }
 
     if (sourcePatch.d) {
         if (Array.isArray(sourcePatch.d)) {
-            sourcePatch.d = filterArrayEntries(sourcePatch.d, fields);
+            resultPatch.d = filterArrayEntries(sourcePatch.d, fields);
         } else {
             resultPatch.d = sourcePatch.d;
         }
