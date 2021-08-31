@@ -64,6 +64,9 @@ type PatchKey =
     | keyof MapPatch
     | keyof SetPatch;
 
+export function filterPatch(proxy: MapPatch, fields: FieldSet): MapPatch;
+export function filterPatch(proxy: SetPatch, fields: FieldSet): SetPatch;
+export function filterPatch(proxy: ObjectPatch, fields: FieldSet): ObjectPatch;
 export function filterPatch(patch: Patch, fields: FieldSet): Patch {
     const sourcePatch: Partial<Record<PatchKey, any>> = patch;
     const resultPatch: Partial<Record<PatchKey, any>> = {};

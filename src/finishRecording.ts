@@ -1,8 +1,12 @@
 import { stringify } from 'enhancejson/lib/stringify';
-import { Patch } from './Patch';
+import { ArrayPatch, MapPatch, ObjectPatch, Patch, SetPatch } from './Patch';
 import { managersByProxy } from './ProxyManager';
 
-export function finishRecordingRaw<T extends object>(proxy: T): Patch | null {
+export function finishRecordingRaw(proxy: Map<any, any>): MapPatch | null;
+export function finishRecordingRaw(proxy: Set<any>): SetPatch | null;
+export function finishRecordingRaw(proxy: Array<any>): ArrayPatch | null;
+export function finishRecordingRaw(proxy: object): ObjectPatch | null;
+export function finishRecordingRaw(proxy: object): Patch | null {
     const manager = managersByProxy.get(proxy);
 
     if (manager === undefined) {
@@ -16,7 +20,7 @@ export function finishRecordingRaw<T extends object>(proxy: T): Patch | null {
     return patch === undefined ? null : patch;
 }
 
-export function finishRecording<T extends object>(proxy: T): string | null {
+export function finishRecording(proxy: object): string | null {
     const patch = finishRecordingRaw(proxy);
 
     return patch === null ? null : stringify(patch);
