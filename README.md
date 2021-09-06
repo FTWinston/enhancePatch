@@ -52,6 +52,42 @@ Megapatch uses [enhanceJSON](https://github.com/FTWinston/enhanceJSON) to string
 
 If you wish to handle stringification yourself, you can use `finishRecordingRaw` instead of `finishRecording`, to return the patch in object format, instead of getting the stringified version.
 
-You will need to stringify this patch yourself. Note that if you don't use `enhanceJSON` to to do, Maps and Sets will not be supported.
+You will need to stringify this patch yourself. Note that if you don't use `enhanceJSON` to to do, Maps and Sets will not be supported. If you have a raw patch object, `filterPatch` allows you to trim it to only include certain properties.
 
 The `applyChanges` function will accept a patch object or a stringified patch.
+
+## Patch structure
+_Note that knowledge of the patch structure is not required to use megapatch to record or apply patches. This section is included for information only._
+
+Each patch is an object. There are 4 patch types, depending on the target of the patch.
+
+A patch is always applied to an existing object, array, Map or Set. It is not always possible to determine the type of the target from a patch, e.g. a certain `ObjectPatch` might be insdistinguishable from a `MapPatch`.
+
+### ObjectPatch
+This represents a patch to be applied to an existing object. Note that the keys of a javascript object are always stored as strings, even if they were specified numerically.
+
+It has any of the following properties:
+- *s*: an object, whose keys are strings representing properties to be set on the patched object, and whose values are the corresponding values.
+- *d*: an array of strings, representing properties to be deleted from the patched object.
+- *c*: an object, whose keys are strings representing existing properties on the patched object, and whose values are patches to be applied to the corresponding child object.
+
+### ArrayPatch
+This represents a patch to be applied to an existing array. It has any of the following properties:
+- *o*: an array of objects, each representing an operation to be applied to the patched array, such as setting an item, shifting an item from the start of the array, or splicing items into/out of the array.
+- *c*: an object, whose keys are strings representing existing indexes in the patched array, and whose values are patches to be applied to the corresponding child object.
+
+### MapPatch
+This represents a patch to be applied to an existing Map. Megapatch requires that Maps use only strings and numbers as their keys. (Objects couldn't later be referred to via a string representation of the object.)
+
+It has any of the following properties:
+- *s*: an array representing values to be added to the patched Map. Each entry is itself an array of two items, with the first being a string or number being the entry's key, and the second being the entry's value.
+- *d*: an array of strings or numbers, representing keys to be deleted from the patched Map, _or_ true, to clear the patched Map completely.
+- *c*: an object, whose keys are strings representing existing _string_ keys on the patched Map, and whose values are patches to be applied to the corresponding value object.
+- *C*: an object, whose keys are strings representing existing _number_ keys on the patched Map, and whose values are patches to be applied to the corresponding value object.
+
+### SetPatch
+This represents a patch to be applied to an existing Set. Megapatch requires that Sets contain only strings and numbers. (Objects couldn't later be referred to via a string representation of the object.)
+
+It has any of the following properties:
+- *a*: an array of strings or numbers, representing values to be added to the patched Set.
+- *d*: an array of strings or numbers, representing values to be deleted from the patched Set, _or_ true, to clear the patched Set completely.
