@@ -1,6 +1,6 @@
 {
   "name": "megapatch",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Record/apply changes to an object tree",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
