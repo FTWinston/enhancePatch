@@ -2,6 +2,8 @@
 
 Record changes to an object tree into an efficient json "patch" object, and use this to apply the recorded changes to a different object tree.
 
+![Version badge](https://badgen.net/npm/v/megapatch) ![Minified badge](https://badgen.net/bundlephobia/min/megapatch) ![Minzipped badge](https://badgen.net/bundlephobia/minzip/megapatch) ![Dependencies badge](https://badgen.net/bundlephobia/dependency-count/megapatch) ![Types badge](https://badgen.net/npm/types/megapatch)
+
 When making many changes to a complex object tree, json patch is a fairly inefficient way of recording those changes.
 Instead of one patch object per operation, megapatch groups any number of operations into a single "patch" object.
 This smartly handles repeated updates of the same object, and array manipulation, to keep the "patch" as small as possible.
