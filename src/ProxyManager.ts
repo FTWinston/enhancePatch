@@ -1,4 +1,4 @@
-import { isArray, isMap, isSet } from 'enhancejson/lib/typeChecks';
+import { isArray, isMap, isSet } from 'enhancejson';
 import { ArrayOperation, ArrayOperationType } from './ArrayOperation';
 import { ArrayPatch, MapPatch, ObjectPatch, Patch, SetPatch } from './Patch';
 

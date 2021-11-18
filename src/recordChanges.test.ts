@@ -1,4 +1,4 @@
-import { stringify } from 'enhancejson/lib/stringify';
+import { stringify } from 'enhancejson';
 import { applyChanges } from './applyChanges';
 import { finishRecording } from './finishRecording';
 import { recordChanges } from './recordChanges';

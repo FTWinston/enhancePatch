@@ -1,4 +1,4 @@
-import { stringify } from 'enhancejson/lib/stringify';
+import { stringify } from 'enhancejson';
 import { ArrayPatch, MapPatch, ObjectPatch, Patch, SetPatch } from './Patch';
 import { managersByProxy } from './ProxyManager';
 

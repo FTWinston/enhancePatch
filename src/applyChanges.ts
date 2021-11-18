@@ -1,11 +1,10 @@
 import { ArrayPatch, MapPatch, ObjectPatch, Patch, SetPatch } from './Patch';
-import { parse } from 'enhancejson/lib/parse';
+import { parse, isArray, isMap, isObject, isSet } from 'enhancejson';
 import {
     ArrayOperation,
     ArrayOperationType,
     ArraySpliceOperation2,
 } from './ArrayOperation';
-import { isArray, isMap, isObject, isSet } from 'enhancejson/lib/typeChecks';
 
 function patchObject(tree: Record<string, any>, patch: ObjectPatch) {
     if (patch.s) {
