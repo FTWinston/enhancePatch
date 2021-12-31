@@ -1,6 +1,6 @@
 {
   "name": "megapatch",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Record/apply changes to an object tree",
   "sideEffects": false,
   "homepage": "https://github.com/FTWinston/megapatch",
