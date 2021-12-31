@@ -1,5 +1,5 @@
 import { applyChanges } from './applyChanges';
-import { Patch, PatchType } from './Patch';
+import { Patch } from './Patch';
 
 test('objects', () => {
     const tree = {
