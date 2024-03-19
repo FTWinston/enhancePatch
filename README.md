@@ -40,7 +40,7 @@ const patch = finishRecording(proxy);
 
 expect(typeof patch).toEqual('string');
 
-// This is identical to hte original data object, before the changes were recorded.
+// This is identical to the original data object, before the changes were recorded.
 const newData = { existing: [1, 2, 3] };
 
 // Applying changes doesn't mutate existing objects.
@@ -54,7 +54,7 @@ Megapatch uses [enhanceJSON](https://github.com/FTWinston/enhanceJSON) to string
 
 If you wish to handle stringification yourself, you can use `finishRecordingRaw` instead of `finishRecording`, to return the patch in object format, instead of getting the stringified version.
 
-You will need to stringify this patch yourself. Note that if you don't use `enhanceJSON` to to do, Maps and Sets will not be supported. If you have a raw patch object, `filterPatch` allows you to trim it to only include certain properties.
+You will need to stringify this patch yourself. Note that if you don't use `enhanceJSON` to do so, Maps and Sets will not be supported. If you have a raw patch object, `filterPatch` allows you to trim it to only include certain properties.
 
 The `applyChanges` function will accept a patch object or a stringified patch.
 
