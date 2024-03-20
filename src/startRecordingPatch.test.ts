@@ -1,12 +1,12 @@
 import { stringify } from 'enhancejson';
-import { applyChanges } from './applyChanges';
-import { finishRecording } from './finishRecording';
-import { recordChanges } from './recordChanges';
+import { applyPatch } from './applyPatch';
+import { finishRecordingPatch } from './finishRecordingPatch';
+import { startRecordingPatch } from './startRecordingPatch';
 
 test('simple objects', () => {
     const tree: any = {};
 
-    const proxy = recordChanges(tree);
+    const proxy = startRecordingPatch(tree);
 
     proxy.x = 1;
     proxy.y = 'hi';
@@ -33,21 +33,21 @@ test('simple objects', () => {
 
     expect(proxy).toEqual(tree);
 
-    const patch = finishRecording(proxy);
+    const patch = finishRecordingPatch(proxy);
 
     expect(patch).not.toBeNull();
 
     if (patch !== null) {
         const newTree = {};
 
-        const updatedTree = applyChanges(newTree, patch);
+        const updatedTree = applyPatch(newTree, patch);
 
         expect(updatedTree).toEqual(tree);
 
         expect(newTree).toEqual({});
     }
 
-    const subsequentPatch = finishRecording(proxy);
+    const subsequentPatch = finishRecordingPatch(proxy);
 
     expect(subsequentPatch).toBeNull();
 });
@@ -55,7 +55,7 @@ test('simple objects', () => {
 test('array, all in one', () => {
     const tree: any = {};
 
-    const proxy = recordChanges(tree);
+    const proxy = startRecordingPatch(tree);
 
     proxy.a = [];
     proxy.a.push('hi');
@@ -80,21 +80,21 @@ test('array, all in one', () => {
 
     expect(proxy).toEqual(tree);
 
-    const patch = finishRecording(proxy);
+    const patch = finishRecordingPatch(proxy);
 
     expect(patch).not.toBeNull();
 
     if (patch !== null) {
         const newTree = {};
 
-        const updatedTree = applyChanges(newTree, patch);
+        const updatedTree = applyPatch(newTree, patch);
 
         expect(updatedTree).toEqual(tree);
 
         expect(newTree).toEqual({});
     }
 
-    const subsequentPatch = finishRecording(proxy);
+    const subsequentPatch = finishRecordingPatch(proxy);
 
     expect(subsequentPatch).toBeNull();
 });
@@ -102,21 +102,21 @@ test('array, all in one', () => {
 test('array, separate', () => {
     const tree: any = {};
 
-    const proxy = recordChanges(tree);
+    const proxy = startRecordingPatch(tree);
 
     proxy.a = [];
 
-    const firstPatch = finishRecording(proxy);
+    const firstPatch = finishRecordingPatch(proxy);
 
     if (firstPatch === null) {
         return;
     }
 
-    const firstPatchedTree = applyChanges({}, firstPatch);
+    const firstPatchedTree = applyPatch({}, firstPatch);
 
     expect(firstPatchedTree).toEqual(tree);
 
-    const proxy2 = recordChanges(tree);
+    const proxy2 = startRecordingPatch(tree);
 
     proxy2.a.push('hi');
     proxy2.a.push('there');
@@ -149,19 +149,19 @@ test('array, separate', () => {
 
     expect(proxy2).toEqual(tree);
 
-    const patch2 = finishRecording(proxy2);
+    const patch2 = finishRecordingPatch(proxy2);
 
     expect(patch2).not.toBeNull();
 
     if (patch2 !== null) {
-        const updatedTree = applyChanges(firstPatchedTree, patch2);
+        const updatedTree = applyPatch(firstPatchedTree, patch2);
 
         expect(updatedTree).toEqual(tree);
 
         expect(firstPatchedTree).toEqual({ a: [] });
     }
 
-    const subsequentPatch = finishRecording(proxy);
+    const subsequentPatch = finishRecordingPatch(proxy);
 
     expect(subsequentPatch).toBeNull();
 });
@@ -169,7 +169,7 @@ test('array, separate', () => {
 test('array, as root', () => {
     const tree: any[] = [];
 
-    const proxy = recordChanges(tree);
+    const proxy = startRecordingPatch(tree);
 
     proxy.push('hi');
     proxy.push('there');
@@ -191,21 +191,21 @@ test('array, as root', () => {
 
     expect(proxy).toEqual(tree);
 
-    const patch = finishRecording(proxy);
+    const patch = finishRecordingPatch(proxy);
 
     expect(patch).not.toBeNull();
 
     if (patch !== null) {
         const newTree: any[] = [];
 
-        const updatedTree = applyChanges(newTree, patch);
+        const updatedTree = applyPatch(newTree, patch);
 
         expect(updatedTree).toEqual(tree);
 
         expect(newTree).toEqual([]);
     }
 
-    const subsequentPatch = finishRecording(proxy);
+    const subsequentPatch = finishRecordingPatch(proxy);
 
     expect(subsequentPatch).toBeNull();
 });
@@ -216,7 +216,7 @@ test('map and set', () => {
         set: new Set<any>(),
     };
 
-    const proxy = recordChanges(tree);
+    const proxy = startRecordingPatch(tree);
 
     proxy.map.set('a', 1);
     proxy.map.set(2, 'b');
@@ -247,7 +247,7 @@ test('map and set', () => {
     const b = stringify(proxy);
     expect(a).toEqual(b);
 
-    const patch = finishRecording(proxy);
+    const patch = finishRecordingPatch(proxy);
 
     expect(patch).not.toBeNull();
 
@@ -257,7 +257,7 @@ test('map and set', () => {
             set: new Set<any>(),
         };
 
-        const updatedTree = applyChanges(newTree, patch);
+        const updatedTree = applyPatch(newTree, patch);
 
         expect(updatedTree).toEqual(tree);
 
@@ -267,7 +267,7 @@ test('map and set', () => {
         });
     }
 
-    const subsequentPatch = finishRecording(proxy);
+    const subsequentPatch = finishRecordingPatch(proxy);
 
     expect(subsequentPatch).toBeNull();
 });
@@ -275,7 +275,7 @@ test('map and set', () => {
 test('map as root', () => {
     const tree = new Map<any, any>();
 
-    const proxy = recordChanges(tree);
+    const proxy = startRecordingPatch(tree);
 
     proxy.set('a', 1);
     proxy.set(2, 'b');
@@ -300,21 +300,21 @@ test('map as root', () => {
     const b = stringify(proxy);
     expect(a).toEqual(b);
 
-    const patch = finishRecording(proxy);
+    const patch = finishRecordingPatch(proxy);
 
     expect(patch).not.toBeNull();
 
     if (patch !== null) {
         const newTree = new Map<any, any>();
 
-        const updatedTree = applyChanges(newTree, patch);
+        const updatedTree = applyPatch(newTree, patch);
 
         expect(updatedTree).toEqual(tree);
 
         expect(newTree).toEqual(new Map<any, any>());
     }
 
-    const subsequentPatch = finishRecording(proxy);
+    const subsequentPatch = finishRecordingPatch(proxy);
 
     expect(subsequentPatch).toBeNull();
 });
@@ -322,7 +322,7 @@ test('map as root', () => {
 test('set as root', () => {
     const tree = new Set<any>();
 
-    const proxy = recordChanges(tree);
+    const proxy = startRecordingPatch(tree);
 
     proxy.add('a');
     proxy.add('b');
@@ -337,21 +337,21 @@ test('set as root', () => {
     const b = stringify(proxy);
     expect(a).toEqual(b);
 
-    const patch = finishRecording(proxy);
+    const patch = finishRecordingPatch(proxy);
 
     expect(patch).not.toBeNull();
 
     if (patch !== null) {
         const newTree = new Set<any>();
 
-        const updatedTree = applyChanges(newTree, patch);
+        const updatedTree = applyPatch(newTree, patch);
 
         expect(updatedTree).toEqual(tree);
 
         expect(newTree).toEqual(new Set<any>());
     }
 
-    const subsequentPatch = finishRecording(proxy);
+    const subsequentPatch = finishRecordingPatch(proxy);
 
     expect(subsequentPatch).toBeNull();
 });
@@ -359,7 +359,7 @@ test('set as root', () => {
 test('date', () => {
     const tree: any = {};
 
-    const proxy = recordChanges(tree);
+    const proxy = startRecordingPatch(tree);
 
     proxy.a = new Date(2000, 0, 0, 6, 32, 15, 52);
     proxy.b = new Date();
@@ -372,21 +372,21 @@ test('date', () => {
 
     expect(proxy).toEqual(tree);
 
-    const patch = finishRecording(proxy);
+    const patch = finishRecordingPatch(proxy);
 
     expect(patch).not.toBeNull();
 
     if (patch !== null) {
         const newTree = {};
 
-        const updatedTree = applyChanges(newTree, patch);
+        const updatedTree = applyPatch(newTree, patch);
 
         expect(updatedTree).toEqual(tree);
 
         expect(newTree).toEqual({});
     }
 
-    const subsequentPatch = finishRecording(proxy);
+    const subsequentPatch = finishRecordingPatch(proxy);
 
     expect(subsequentPatch).toBeNull();
 });

@@ -16,12 +16,12 @@ Run `npm install --save megapatch`
 Megapatch can record and recreate changes to javascript objects, arrays, Maps and Sets. It cannot recreate classes.
 
 ```javascript
-import { recordChanges, finishRecording, applyChanges } from 'megapatch';
+import { startRecordingPatch, finishRecordingPatch, applyPatch } from 'megapatch';
 
 const data = { existing: [1, 2, 3] };
 
 // The proxy appears identical to the source data.
-const proxy = recordChanges(data); 
+const proxy = startRecordingPatch(data); 
 
 // All changes should be made via the proxy.
 proxy.foo = 1;
@@ -36,15 +36,15 @@ proxy.someMap.set(3, 'c');
 expect(proxy).toEqual(data);
 
 // Retrieve a "patch" representing all of the recorded changes.
-const patch = finishRecording(proxy);
+const patch = finishRecordingPatch(proxy);
 
 expect(typeof patch).toEqual('string');
 
 // This is identical to the original data object, before the changes were recorded.
 const newData = { existing: [1, 2, 3] };
 
-// Applying changes doesn't mutate existing objects.
-const updatedData = applyChanges(newData, patch);
+// Applying a patch  doesn't mutate the existing objects.
+const updatedData = applyPatch(newData, patch);
 
 expect(updatedData).toEqual(data);
 expect(updatedData).not.toEqual(newData);
@@ -52,11 +52,11 @@ expect(updatedData).not.toEqual(newData);
 
 Megapatch uses [enhanceJSON](https://github.com/FTWinston/enhanceJSON) to stringify and parse JSON.
 
-If you wish to handle stringification yourself, you can use `finishRecordingRaw` instead of `finishRecording`, to return the patch in object format, instead of getting the stringified version.
+If you wish to handle stringification yourself, you can use `finishRecordingRaw` instead of `finishRecordingPatch`, to return the patch in object format, instead of getting the stringified version.
 
 You will need to stringify this patch yourself. Note that if you don't use `enhanceJSON` to do so, Maps and Sets will not be supported. If you have a raw patch object, `filterPatch` allows you to trim it to only include certain properties.
 
-The `applyChanges` function will accept a patch object or a stringified patch.
+The `applyPatch` function will accept a patch object or a stringified patch.
 
 ## Patch structure
 _Note that knowledge of the patch structure is not required to use megapatch to record or apply patches. This section is included for information only._

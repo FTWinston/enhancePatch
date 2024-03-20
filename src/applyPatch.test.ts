@@ -1,4 +1,4 @@
-import { applyChanges } from './applyChanges';
+import { applyPatch } from './applyPatch';
 import { Patch } from './Patch';
 
 test('objects', () => {
@@ -30,7 +30,7 @@ test('objects', () => {
         },
     };
 
-    const newTree = applyChanges(tree, patch);
+    const newTree = applyPatch(tree, patch);
 
     expect(newTree).toEqual({
         a: 1,
@@ -81,7 +81,7 @@ test('new maps and sets', () => {
         },
     };
 
-    const newTree = applyChanges(tree, patch);
+    const newTree = applyPatch(tree, patch);
 
     expect(newTree).toEqual({
         a: new Map<any, any>([
@@ -213,7 +213,7 @@ test('existing map', () => {
         },
     };
 
-    const newTree = applyChanges(tree, patch);
+    const newTree = applyPatch(tree, patch);
 
     expect(newTree).toEqual({
         a: new Map<string | number, any>([
@@ -282,7 +282,7 @@ test('existing set', () => {
         },
     };
 
-    const newTree = applyChanges(tree, patch);
+    const newTree = applyPatch(tree, patch);
 
     expect(newTree).toEqual({
         a: new Set<any>([1, 'a', 4, 5]),
@@ -308,7 +308,7 @@ test('dates', () => {
         },
     };
 
-    const newTree = applyChanges(tree, patch);
+    const newTree = applyPatch(tree, patch);
 
     expect(newTree).toEqual({
         a: new Date(2020, 11, 31),

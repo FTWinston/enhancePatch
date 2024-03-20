@@ -139,7 +139,11 @@ function patchSet(tree: Set<any>, patch: SetPatch) {
     return tree;
 }
 
-function applyPatch<T extends object>(tree: T, patch: Patch): T {
+export function applyPatch<T extends object>(tree: T, patch: Patch | string): T {
+    if (typeof patch === 'string') {
+        patch = parse(patch) as Patch;
+    }
+
     if (isArray(tree)) {
         const array = tree.slice();
         return patchArray(array, patch as ArrayPatch) as T;
@@ -160,15 +164,4 @@ function applyPatch<T extends object>(tree: T, patch: Patch): T {
 
         throw new Error(`${msg}: ${JSON.stringify(patch)}`);
     }
-}
-
-export function applyChanges<T extends object>(
-    tree: T,
-    patch: string | Patch
-): T {
-    if (typeof patch === 'string') {
-        patch = parse(patch) as Patch;
-    }
-
-    return applyPatch(tree, patch);
 }

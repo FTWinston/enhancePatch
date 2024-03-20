@@ -20,7 +20,7 @@ export function finishRecordingRaw(proxy: object): Patch | null {
     return patch === undefined ? null : patch;
 }
 
-export function finishRecording(proxy: object): string | null {
+export function finishRecordingPatch(proxy: object): string | null {
     const patch = finishRecordingRaw(proxy);
 
     return patch === null ? null : stringify(patch);

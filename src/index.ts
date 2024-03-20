@@ -1,5 +1,5 @@
 export { Patch, ObjectPatch, ArrayPatch, MapPatch, SetPatch } from './Patch';
-export { applyChanges } from './applyChanges';
+export { applyPatch } from './applyPatch';
 export { filterPatch } from './filterPatch';
-export { finishRecording, finishRecordingRaw } from './finishRecording';
-export { recordChanges } from './recordChanges';
+export { finishRecordingPatch, finishRecordingRaw } from './finishRecordingPatch';
+export { startRecordingPatch } from './startRecordingPatch';
