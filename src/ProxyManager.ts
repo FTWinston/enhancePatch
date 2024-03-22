@@ -1,6 +1,7 @@
 import { isArray, isMap, isSet } from 'enhancejson';
 import { ArrayOperation, ArrayOperationType } from './ArrayOperation';
 import { ArrayPatch, MapPatch, ObjectPatch, Patch, SetPatch } from './Patch';
+import { Filter } from './Filter';
 
 interface ProxyInfo {
     patch: Patch;
@@ -24,28 +25,33 @@ interface ArrayPatchProxyInfo extends PatchProxyInfo<ArrayPatch> {
     uncreatedChildPatchIndexes: Map<Patch, number>;
 }
 
-interface IProxyManager {
-    readonly rootPatch: Patch | null;
-}
+export type FilterKey = string | number | null;
 
-export const managersByProxy = new WeakMap<object, IProxyManager>();
-
-export class ProxyManager<TRoot extends object> implements IProxyManager {
+export class ProxyManager<TRoot extends object> {
     private readonly proxies = new WeakMap<object, ProxyInfo>();
 
     private readonly rootInfo: TypedProxyInfo<TRoot>;
+
+    private readonly filters: Map<FilterKey, Filter>;
 
     public get rootProxy() {
         return this.rootInfo.proxy;
     }
 
+    /*
     // If addToOutput is still set, nothing has yet been added to the output. So there's no patch.
     public get rootPatch() {
         return this.rootInfo.addToOutput ? null : this.rootInfo.patch;
     }
+    */
 
-    constructor(tree: TRoot) {
+    constructor(tree: TRoot, filters: Map<FilterKey, Filter>) {
+        this.filters = filters;
         this.rootInfo = this.createProxy(tree, undefined, () => {});
+    }
+
+    public getPatches(): Map<FilterKey, Patch> {
+        // TODO: implement this ... we had to have done something with filters in the constructor, to be able to produce output here.
     }
 
     private createObjectHandler(
@@ -612,7 +618,7 @@ export class ProxyManager<TRoot extends object> implements IProxyManager {
         };
     }
 
-    public createProxy<T extends object>(
+    private createProxy<T extends object>(
         underlying: T,
         parent?: ProxyInfo,
         addToOutput?: () => void

@@ -52,12 +52,6 @@ expect(updatedData).not.toEqual(newData);
 
 Megapatch uses [enhanceJSON](https://github.com/FTWinston/enhanceJSON) to stringify and parse JSON.
 
-If you wish to handle stringification yourself, you can use `finishRecordingRaw` instead of `finishRecordingPatch`, to return the patch in object format, instead of getting the stringified version.
-
-You will need to stringify this patch yourself. Note that if you don't use `enhanceJSON` to do so, Maps and Sets will not be supported. If you have a raw patch object, `filterPatch` allows you to trim it to only include certain properties.
-
-The `applyPatch` function will accept a patch object or a stringified patch.
-
 ## Patch structure
 _Note that knowledge of the patch structure is not required to use megapatch to record or apply patches. This section is included for information only._
 
