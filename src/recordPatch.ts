@@ -2,29 +2,37 @@ import { stringify } from 'enhancejson';
 import { Filter } from './Filter';
 import { FilterKey, ProxyManager } from './ProxyManager';
 
-type ReturnValue<T> = {
+type SinglePatchReturnValue<T> = {
     proxy: T;
     getPatch: () => string | null;
+}
+
+type MultiFilterReturnValue<T> = {
+    proxy: T;
     getFilteredPatches: () => Map<FilterKey, string | null>;
 }
 
-export function recordPatch<T extends object>(tree: T, filter?: Filter | Map<FilterKey, Filter>): ReturnValue<T> {
+export function recordPatch<T extends object>(tree: T, filter?: Filter): SinglePatchReturnValue<T>;
+export function recordPatch<T extends object>(tree: T, filter: Map<FilterKey, Filter>): MultiFilterReturnValue<T>;
+export function recordPatch<T extends object>(tree: T, filter?: Filter | Map<FilterKey, Filter>) {
     let passedFilterMap = false;
     
+    let filters: Map<FilterKey | null, Filter>;
     if (filter === undefined) {
-        filter = new Map<FilterKey, Filter>()
-        filter.set(null, { otherKeys: { include: true } })
+        filters = new Map<FilterKey | null, Filter>()
+        filters.set(null, { otherKeys: { include: true } })
     }
     else if (!(filter instanceof Map)) {
         const onlyFilter = filter;
-        filter = new Map<FilterKey, Filter>();
-        filter.set(null, onlyFilter);
+        filters = new Map<FilterKey | null, Filter>();
+        filters.set(null, onlyFilter);
     }
     else {
         passedFilterMap = true;
+        filters = filter as Map<FilterKey | null, Filter>;
     }
 
-    const manager = new ProxyManager(tree, filter);
+    const manager = new ProxyManager(tree, filters);
 
     return {
         proxy: manager.rootProxy,
@@ -37,7 +45,9 @@ export function recordPatch<T extends object>(tree: T, filter?: Filter | Map<Fil
             
             const result = new Map<FilterKey, string>();
             for (const [key, patch] of patches) {
-                result.set(key, stringify(patch));
+                if (key !== null) {
+                    result.set(key, stringify(patch));
+                }
             }
 
             return result;

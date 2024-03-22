@@ -25,14 +25,14 @@ interface ArrayPatchProxyInfo extends PatchProxyInfo<ArrayPatch> {
     uncreatedChildPatchIndexes: Map<Patch, number>;
 }
 
-export type FilterKey = string | number | null;
+export type FilterKey = string | number;
 
 export class ProxyManager<TRoot extends object> {
     private readonly proxies = new WeakMap<object, ProxyInfo>();
 
     private readonly rootInfo: TypedProxyInfo<TRoot>;
 
-    private readonly filters: Map<FilterKey, Filter>;
+    private readonly filters: Map<FilterKey | null, Filter>;
 
     public get rootProxy() {
         return this.rootInfo.proxy;
@@ -45,12 +45,12 @@ export class ProxyManager<TRoot extends object> {
     }
     */
 
-    constructor(tree: TRoot, filters: Map<FilterKey, Filter>) {
+    constructor(tree: TRoot, filters: Map<FilterKey | null, Filter>) {
         this.filters = filters;
         this.rootInfo = this.createProxy(tree, undefined, () => {});
     }
 
-    public getPatches(): Map<FilterKey, Patch> {
+    public getPatches(): Map<FilterKey | null, Patch> {
         // TODO: implement this ... we had to have done something with filters in the constructor, to be able to produce output here.
     }
 
