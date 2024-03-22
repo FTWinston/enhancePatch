@@ -1,7 +1,7 @@
 type FilterKey = string | number;
 
 type FieldFilterValue = {
-  include: boolean | ((key: FilterKey) => boolean;
+  include: boolean | ((key: FilterKey) => boolean);
   filter?: Filter;
 }
 
