@@ -21,7 +21,7 @@ interface TypedProxyInfo<T extends object> extends ProxyInfo {
 }
 
 interface PatchProxyInfo<T extends Patch> extends ProxyInfo {
-    patch: T;
+    patches: Map<FilterIdentifer, T>;
 }
 
 interface ArrayPatchProxyInfo extends PatchProxyInfo<ArrayPatch> {
@@ -104,11 +104,13 @@ export class ProxyManager<TRoot extends object> {
 
                     if (this.canProxy(info, val)) {
                         const addChildToOutput = () => {
-                            if (info.patch.c === undefined) {
-                                info.patch.c = {};
+                            for (const [filterIdentifier, patch] of info.patches) {
+                                if (patch.c === undefined) {
+                                    patch.c = {};
+                                }
+                                patch.c[field] = childInfo.patches.get(filterIdentifier)!;    
                             }
-                            info.patch.c[field] = childInfo.patches.get(null)!;
-
+                            
                             if (info.addToOutput) {
                                 info.addToOutput();
                                 delete info.addToOutput;
@@ -134,15 +136,17 @@ export class ProxyManager<TRoot extends object> {
                 (target as any)[field] = val;
 
                 if (typeof field === 'string') {
-                    if (info.patch.s === undefined) {
-                        info.patch.s = {};
-                    }
-                    info.patch.s[field] = val;
+                    for (const patch of info.patches.values()) {
+                        if (patch.s === undefined) {
+                            patch.s = {};
+                        }
+                        patch.s[field] = val;
 
-                    if (info.patch.d !== undefined) {
-                        const removeAt = info.patch.d.indexOf(field);
-                        if (removeAt !== -1) {
-                            info.patch.d.splice(removeAt, 1);
+                        if (patch.d !== undefined) {
+                            const removeAt = patch.d.indexOf(field);
+                            if (removeAt !== -1) {
+                                patch.d.splice(removeAt, 1);
+                            }
                         }
                     }
 
@@ -163,13 +167,15 @@ export class ProxyManager<TRoot extends object> {
                 delete (target as any)[field];
 
                 if (typeof field === 'string') {
-                    if (info.patch.d === undefined) {
-                        info.patch.d = [];
-                    }
-                    info.patch.d.push(field);
+                    for (const patch of info.patches.values()) {
+                        if (patch.d === undefined) {
+                            patch.d = [];
+                        }
+                        patch.d.push(field);
 
-                    if (info.patch.s !== undefined) {
-                        delete info.patch.s[field];
+                        if (patch.s !== undefined) {
+                            delete patch.s[field];
+                        }
                     }
 
                     this.removeProxy(val);
@@ -186,11 +192,13 @@ export class ProxyManager<TRoot extends object> {
     }
 
     private addArrayOp(info: PatchProxyInfo<ArrayPatch>, op: ArrayOperation) {
-        if (info.patch.o === undefined) {
-            info.patch.o = [];
-        }
+        for (const patch of info.patches.values()) {
+            if (patch.o === undefined) {
+                patch.o = [];
+            }
 
-        info.patch.o.push(op);
+            patch.o.push(op);
+        }
 
         if (info.addToOutput) {
             info.addToOutput();
@@ -212,24 +220,26 @@ export class ProxyManager<TRoot extends object> {
             info.uncreatedChildPatchIndexes.delete(child);
         }
 
-        const children = info.patch.c;
+        for (const patch of info.patches.values()) {
+            const children = patch.c;
 
-        if (children === undefined) {
-            return;
-        }
-
-        const newChildren: Record<number, Patch> = {};
-
-        for (const [strIndex, value] of Object.entries(children)) {
-            const index = parseInt(strIndex);
-            const newIndex = getNewIndex(index);
-
-            if (newIndex !== null) {
-                newChildren[newIndex] = value;
+            if (children === undefined) {
+                return;
             }
-        }
 
-        info.patch.c = newChildren;
+            const newChildren: Record<number, Patch> = {};
+
+            for (const [strIndex, value] of Object.entries(children)) {
+                const index = parseInt(strIndex);
+                const newIndex = getNewIndex(index);
+
+                if (newIndex !== null) {
+                    newChildren[newIndex] = value;
+                }
+            }
+
+            patch.c = newChildren;
+        }
     }
 
     private createArrayHandler(info: ArrayPatchProxyInfo): ProxyHandler<any[]> {
@@ -248,14 +258,12 @@ export class ProxyManager<TRoot extends object> {
                             this.removeProxy(removing);
                         }
 
-                        if (info.patch.c) {
-                            const shift = items.length - deleteCount;
+                        const shift = items.length - deleteCount;
 
-                            // Update child patch indexes
-                            this.adjustArrayChildIndexes(info, (i) =>
-                                i < start ? i : i + shift
-                            );
-                        }
+                        // Update child patch indexes
+                        this.adjustArrayChildIndexes(info, (i) =>
+                            i < start ? i : i + shift
+                        );
 
                         this.addArrayOp(info, {
                             o: ArrayOperationType.Splice,
@@ -332,14 +340,18 @@ export class ProxyManager<TRoot extends object> {
                         );
 
                         const addChildToOutput = () => {
-                            if (info.patch.c === undefined) {
-                                info.patch.c = {};
+                            for (const patch of info.patches.values()) {
+                                if (patch.c === undefined) {
+                                    patch.c = {};
+                                }
                             }
 
                             const index =
                                 info.uncreatedChildPatchIndexes.get(val);
                             if (index !== undefined) {
-                                info.patch.c[index] = childInfo.patches.get(null)!;
+                                for (const [filterIdentifier, patch] of info.patches) {
+                                    patch.c![index] = childInfo.patches.get(filterIdentifier)!;
+                                }
 
                                 if (info.addToOutput) {
                                     info.addToOutput();
@@ -438,29 +450,31 @@ export class ProxyManager<TRoot extends object> {
                                 const addChildToOutput =
                                     typeof key === 'string'
                                         ? () => {
-                                              if (info.patch.c === undefined) {
-                                                  info.patch.c = {};
-                                              }
-                                              info.patch.c[key] =
-                                                  childInfo.patches.get(null)!;
-
-                                              if (info.addToOutput) {
-                                                  info.addToOutput();
-                                                  delete info.addToOutput;
-                                              }
-                                          }
+                                            for (const patch of info.patches.values()) {
+                                                if (patch.c === undefined) {
+                                                    patch.c = {};
+                                                }
+                                                patch.c[key] =
+                                                    childInfo.patches.get(null)!;
+                                            }
+                                            if (info.addToOutput) {
+                                                info.addToOutput();
+                                                delete info.addToOutput;
+                                            }
+                                        }
                                         : () => {
-                                              if (info.patch.C === undefined) {
-                                                  info.patch.C = {};
-                                              }
-                                              info.patch.C[key] =
+                                            for (const patch of info.patches.values()) {
+                                                if (patch.C === undefined) {
+                                                    patch.C = {};
+                                                }
+                                                patch.C[key] =
                                                   childInfo.patches.get(null)!;
-
-                                              if (info.addToOutput) {
-                                                  info.addToOutput();
-                                                  delete info.addToOutput;
-                                              }
-                                          };
+                                            }
+                                            if (info.addToOutput) {
+                                                info.addToOutput();
+                                                delete info.addToOutput;
+                                            }
+                                        };
 
                                 const childInfo = this.createProxy(
                                     val,
@@ -482,15 +496,17 @@ export class ProxyManager<TRoot extends object> {
                         target.set(key, val);
 
                         if (this.isAllowedMapKey(key)) {
-                            if (info.patch.s === undefined) {
-                                info.patch.s = [];
-                            }
-                            info.patch.s.push([key, val]);
+                            for (const patch of info.patches.values()) {
+                                if (patch.s === undefined) {
+                                    patch.s = [];
+                                }
+                                patch.s.push([key, val]);
 
-                            if (isArray(info.patch.d)) {
-                                const removeAt = info.patch.d.indexOf(key);
-                                if (removeAt !== -1) {
-                                    info.patch.d.splice(removeAt, 1);
+                                if (isArray(patch.d)) {
+                                    const removeAt = patch.d.indexOf(key);
+                                    if (removeAt !== -1) {
+                                        patch.d.splice(removeAt, 1);
+                                    }
                                 }
                             }
 
@@ -512,19 +528,21 @@ export class ProxyManager<TRoot extends object> {
                         target.delete(key);
 
                         if (this.isAllowedMapKey(key)) {
-                            if (info.patch.d !== true) {
-                                if (info.patch.d === undefined) {
-                                    info.patch.d = [];
+                            for (const patch of info.patches.values()) {
+                                if (patch.d !== true) {
+                                    if (patch.d === undefined) {
+                                        patch.d = [];
+                                    }
+                                    patch.d.push(key);
                                 }
-                                info.patch.d.push(key);
-                            }
 
-                            if (info.patch.s !== undefined) {
-                                const removeAt = info.patch.s.findIndex(
-                                    (el) => el[0] === key
-                                );
-                                if (removeAt !== -1) {
-                                    info.patch.s.splice(removeAt, 1);
+                                if (patch.s !== undefined) {
+                                    const removeAt = patch.s.findIndex(
+                                        (el) => el[0] === key
+                                    );
+                                    if (removeAt !== -1) {
+                                        patch.s.splice(removeAt, 1);
+                                    }
                                 }
                             }
 
@@ -541,8 +559,10 @@ export class ProxyManager<TRoot extends object> {
                 } else if (field === 'clear') {
                     func = () => {
                         target.clear();
-                        info.patch.d = true;
-                        delete info.patch.s;
+                        for (const patch of info.patches.values()) {
+                            patch.d = true;
+                            delete patch.s;
+                        }
 
                         for (const child of info.underlying as Map<any, any>) {
                             this.removeProxy(child);
@@ -581,15 +601,17 @@ export class ProxyManager<TRoot extends object> {
                         target.add(val);
 
                         if (this.isAllowedMapKey(val)) {
-                            if (info.patch.a === undefined) {
-                                info.patch.a = [];
-                            }
-                            info.patch.a.push(val);
+                            for (const patch of info.patches.values()) {
+                                if (patch.a === undefined) {
+                                    patch.a = [];
+                                }
+                                patch.a.push(val);
 
-                            if (isArray(info.patch.d)) {
-                                const removeAt = info.patch.d.indexOf(val);
-                                if (removeAt !== -1) {
-                                    info.patch.d.splice(removeAt, 1);
+                                if (isArray(patch.d)) {
+                                    const removeAt = patch.d.indexOf(val);
+                                    if (removeAt !== -1) {
+                                        patch.d.splice(removeAt, 1);
+                                    }
                                 }
                             }
 
@@ -606,17 +628,19 @@ export class ProxyManager<TRoot extends object> {
                         target.delete(val);
 
                         if (this.isAllowedMapKey(val)) {
-                            if (info.patch.d !== true) {
-                                if (info.patch.d === undefined) {
-                                    info.patch.d = [];
+                            for (const patch of info.patches.values()) {
+                                if (patch.d !== true) {
+                                    if (patch.d === undefined) {
+                                        patch.d = [];
+                                    }
+                                    patch.d.push(val);
                                 }
-                                info.patch.d.push(val);
-                            }
 
-                            if (info.patch.a !== undefined) {
-                                const removeAt = info.patch.a.indexOf(val);
-                                if (removeAt !== -1) {
-                                    info.patch.a.splice(removeAt, 1);
+                                if (patch.a !== undefined) {
+                                    const removeAt = patch.a.indexOf(val);
+                                    if (removeAt !== -1) {
+                                        patch.a.splice(removeAt, 1);
+                                    }
                                 }
                             }
 
@@ -632,8 +656,10 @@ export class ProxyManager<TRoot extends object> {
                     func = () => {
                         target.clear();
 
-                        info.patch.d = true;
-                        delete info.patch.a;
+                        for (const patch of info.patches.values()) {
+                            patch.d = true;
+                            delete patch.a;
+                        }
 
                         if (info.addToOutput) {
                             info.addToOutput();
