@@ -1,11 +1,15 @@
-type FilterKey = string | number;
+export type FilterKey = string | number;
 
-type FieldFilterValue = {
-  include: boolean | ((key: FilterKey) => boolean);
-  filter?: Filter;
+export type ConditionalFilter = {
+    include: boolean | ((key: FilterKey) => boolean);
+    filter?: Filter;
 }
 
 export type Filter = {
-    fixedKeys?: Map<FilterKey, FieldFilterValue>;
-    otherKeys?: FieldFilterValue;
+    fixedKeys?: Map<FilterKey, ConditionalFilter>;
+    otherKeys?: ConditionalFilter;
+}
+
+export const unfilteredFilter: ConditionalFilter = {
+    include: true
 }

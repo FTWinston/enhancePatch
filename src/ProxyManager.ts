@@ -1,10 +1,13 @@
 import { isArray, isMap, isSet } from 'enhancejson';
 import { ArrayOperation, ArrayOperationType } from './ArrayOperation';
 import { ArrayPatch, MapPatch, ObjectPatch, Patch, SetPatch } from './Patch';
-import { Filter } from './Filter';
+import { ConditionalFilter, Filter, FilterKey, unfilteredFilter } from './Filter';
+
+type FilterIdentifer = string | number | null;
 
 interface ProxyInfo {
-    patch: Patch;
+    filters: Map<FilterIdentifer, ConditionalFilter>;
+    patches: Map<FilterIdentifer, Patch>;
     parent?: ProxyInfo;
     addToOutput?: () => void;
     proxy: object;
@@ -25,33 +28,64 @@ interface ArrayPatchProxyInfo extends PatchProxyInfo<ArrayPatch> {
     uncreatedChildPatchIndexes: Map<Patch, number>;
 }
 
-export type FilterKey = string | number;
-
 export class ProxyManager<TRoot extends object> {
     private readonly proxies = new WeakMap<object, ProxyInfo>();
 
     private readonly rootInfo: TypedProxyInfo<TRoot>;
 
-    private readonly filters: Map<FilterKey | null, Filter>;
-
     public get rootProxy() {
         return this.rootInfo.proxy;
     }
 
-    /*
-    // If addToOutput is still set, nothing has yet been added to the output. So there's no patch.
-    public get rootPatch() {
-        return this.rootInfo.addToOutput ? null : this.rootInfo.patch;
-    }
-    */
+    constructor(tree: TRoot, filters: Map<FilterIdentifer, Filter>) {
+        const rootFilters = new Map<FilterIdentifer, ConditionalFilter>();
+        for (const [identifier, filter] of filters) {
+            rootFilters.set(identifier, { include: true, filter });
+        }
 
-    constructor(tree: TRoot, filters: Map<FilterKey | null, Filter>) {
-        this.filters = filters;
-        this.rootInfo = this.createProxy(tree, undefined, () => {});
+        this.rootInfo = this.createProxy(tree, rootFilters, undefined, () => {});
     }
 
-    public getPatches(): Map<FilterKey | null, Patch> {
-        // TODO: implement this ... we had to have done something with filters in the constructor, to be able to produce output here.
+    public getPatches(): Map<FilterIdentifer, Patch> {
+        // If addToOutput is still set, nothing has yet been added to the output. So there's no patches.
+        // return this.rootInfo.addToOutput ? null : this.rootInfo.patch; 
+        // TODO: recreate above logic?
+
+        return this.rootInfo.patches;
+    }
+
+    private getFilterField(filter: Filter, field: FilterKey): ConditionalFilter | undefined {
+        let specificFilter = filter.fixedKeys?.get(field);
+
+        return specificFilter === undefined
+            ? filter.otherKeys
+            : specificFilter;
+    }
+
+    private shouldIncludeChild(conditionalFilter: ConditionalFilter | undefined, field: FilterKey): boolean {
+        if (conditionalFilter === undefined) {
+            return false;
+        }
+
+        return typeof conditionalFilter.include === 'boolean'
+            ? conditionalFilter.include
+            : conditionalFilter.include(field);
+    }
+
+    private getChildFilters(filters: Map<FilterIdentifer, ConditionalFilter>, field: FilterKey): Map<FilterIdentifer, ConditionalFilter> {
+        const results = new Map<FilterIdentifer, ConditionalFilter>();
+
+        for (const [identifier, conditionalFilter] of filters) {
+            const fieldFilter = conditionalFilter.filter
+                ? this.getFilterField(conditionalFilter.filter, field)
+                : unfilteredFilter;
+
+            if (fieldFilter && fieldFilter.include !== false) {
+                results.set(identifier, fieldFilter);
+            }
+        }
+
+        return results;
     }
 
     private createObjectHandler(
@@ -73,7 +107,7 @@ export class ProxyManager<TRoot extends object> {
                             if (info.patch.c === undefined) {
                                 info.patch.c = {};
                             }
-                            info.patch.c[field] = childInfo.patch;
+                            info.patch.c[field] = childInfo.patches.get(null)!;
 
                             if (info.addToOutput) {
                                 info.addToOutput();
@@ -83,6 +117,7 @@ export class ProxyManager<TRoot extends object> {
 
                         const childInfo = this.createProxy(
                             val,
+                            this.getChildFilters(info.filters, field),
                             info,
                             addChildToOutput
                         );
@@ -304,7 +339,7 @@ export class ProxyManager<TRoot extends object> {
                             const index =
                                 info.uncreatedChildPatchIndexes.get(val);
                             if (index !== undefined) {
-                                info.patch.c[index] = childInfo.patch;
+                                info.patch.c[index] = childInfo.patches.get(null)!;
 
                                 if (info.addToOutput) {
                                     info.addToOutput();
@@ -315,6 +350,7 @@ export class ProxyManager<TRoot extends object> {
 
                         const childInfo = this.createProxy(
                             val,
+                            this.getChildFilters(info.filters, field),
                             info,
                             addChildToOutput
                         );
@@ -406,7 +442,7 @@ export class ProxyManager<TRoot extends object> {
                                                   info.patch.c = {};
                                               }
                                               info.patch.c[key] =
-                                                  childInfo.patch;
+                                                  childInfo.patches.get(null)!;
 
                                               if (info.addToOutput) {
                                                   info.addToOutput();
@@ -418,7 +454,7 @@ export class ProxyManager<TRoot extends object> {
                                                   info.patch.C = {};
                                               }
                                               info.patch.C[key] =
-                                                  childInfo.patch;
+                                                  childInfo.patches.get(null)!;
 
                                               if (info.addToOutput) {
                                                   info.addToOutput();
@@ -428,6 +464,7 @@ export class ProxyManager<TRoot extends object> {
 
                                 const childInfo = this.createProxy(
                                     val,
+                                    this.getChildFilters(info.filters, field),
                                     info,
                                     addChildToOutput
                                 );
@@ -620,13 +657,15 @@ export class ProxyManager<TRoot extends object> {
 
     private createProxy<T extends object>(
         underlying: T,
+        filters: Map<FilterIdentifer, ConditionalFilter>,
         parent?: ProxyInfo,
         addToOutput?: () => void
     ): TypedProxyInfo<T> {
         const info: TypedProxyInfo<T> = {
             parent,
             addToOutput,
-            patch: {},
+            filters,
+            patches: new Map(),
             proxy: new Proxy(underlying, {}), // TODO: avoid this needless instantiation?
             newlyAddedChildren: new Set<object>(),
             underlying,

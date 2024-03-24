@@ -1,6 +1,6 @@
 import { stringify } from 'enhancejson';
-import { Filter } from './Filter';
-import { FilterKey, ProxyManager } from './ProxyManager';
+import { Filter, FilterKey } from './Filter';
+import { ProxyManager } from './ProxyManager';
 
 type SinglePatchReturnValue<T> = {
     proxy: T;
