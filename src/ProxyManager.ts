@@ -697,6 +697,10 @@ export class ProxyManager<TRoot extends object> {
             underlying,
         };
 
+        for (const filterIdentifier of filters.keys()) {
+            info.patches.set(filterIdentifier, {});
+        }
+
         let handler: ProxyHandler<any>;
 
         if (isArray(underlying)) {

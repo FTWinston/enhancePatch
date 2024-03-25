@@ -19,8 +19,8 @@ export function recordPatch<T extends object>(tree: T, filter?: Filter | Map<Fil
     
     let filters: Map<FilterKey | null, Filter>;
     if (filter === undefined) {
-        filters = new Map<FilterKey | null, Filter>()
-        filters.set(null, { otherKeys: { include: true } })
+        filters = new Map<FilterKey | null, Filter>();
+        filters.set(null, { otherKeys: { include: true } });
     }
     else if (!(filter instanceof Map)) {
         const onlyFilter = filter;
