@@ -450,12 +450,12 @@ export class ProxyManager<TRoot extends object> {
                                 const addChildToOutput =
                                     typeof key === 'string'
                                         ? () => {
-                                            for (const patch of info.patches.values()) {
+                                            for (const [filterIdentifier, patch] of info.patches) {
                                                 if (patch.c === undefined) {
                                                     patch.c = {};
                                                 }
                                                 patch.c[key] =
-                                                    childInfo.patches.get(null)!;
+                                                    childInfo.patches.get(filterIdentifier)!;
                                             }
                                             if (info.addToOutput) {
                                                 info.addToOutput();
@@ -463,12 +463,12 @@ export class ProxyManager<TRoot extends object> {
                                             }
                                         }
                                         : () => {
-                                            for (const patch of info.patches.values()) {
+                                            for (const [filterIdentifier, patch] of info.patches) {
                                                 if (patch.C === undefined) {
                                                     patch.C = {};
                                                 }
                                                 patch.C[key] =
-                                                  childInfo.patches.get(null)!;
+                                                  childInfo.patches.get(filterIdentifier)!;
                                             }
                                             if (info.addToOutput) {
                                                 info.addToOutput();
