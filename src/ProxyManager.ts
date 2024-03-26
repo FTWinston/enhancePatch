@@ -3,7 +3,7 @@ import { ArrayOperation, ArrayOperationType } from './ArrayOperation';
 import { ArrayPatch, MapPatch, ObjectPatch, Patch, SetPatch } from './Patch';
 import { ConditionalFilter, Filter, FilterKey, unfilteredFilter } from './Filter';
 
-type FilterIdentifer = string | number | null;
+export type FilterIdentifer = string | number | null;
 
 interface ProxyInfo {
     filters: Map<FilterIdentifer, ConditionalFilter>;
