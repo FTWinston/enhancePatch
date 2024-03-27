@@ -1,15 +1,15 @@
-import { stringify } from 'enhancejson';
 import { Filter } from './Filter';
+import { Patch } from './Patch';
 import { FilterIdentifer, ProxyManager } from './ProxyManager';
 
 type SinglePatchReturnValue<T> = {
     proxy: T;
-    getPatch: () => string | null;
+    getPatch: () => Patch;
 }
 
 type MultiFilterReturnValue<T> = {
     proxy: T;
-    getPatches: () => Map<SpecifiedFilterIdentifier, string | null>;
+    getPatches: () => Map<SpecifiedFilterIdentifier, Patch>;
 }
 
 type SpecifiedFilterIdentifier = Exclude<FilterIdentifer, null>;
@@ -40,14 +40,7 @@ export function recordPatch<T extends object>(tree: T, filter?: Filter | Map<Spe
         return {
             proxy: manager.rootProxy,
             getPatches: () => {
-                const patches = manager.getPatches();
-                
-                const result = new Map<SpecifiedFilterIdentifier, string>();
-                for (const [key, patch] of patches) {
-                    result.set(key!, stringify(patch));
-                }
-    
-                return result;
+                return manager.getPatches() as Map<SpecifiedFilterIdentifier, Patch>;
             },
         }
     }
@@ -56,11 +49,7 @@ export function recordPatch<T extends object>(tree: T, filter?: Filter | Map<Spe
             proxy: manager.rootProxy,
             getPatch: () => {
                 const patches = manager.getPatches();
-                const patch = patches.get(null);
-
-                return patch === undefined
-                    ? null
-                    : stringify(patch);
+                return patches.get(null) ?? {};
             }
         };
     }

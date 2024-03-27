@@ -1,6 +1,50 @@
-import { stringify } from 'enhancejson';
 import { applyPatch } from './applyPatch';
 import { recordPatch } from './recordPatch';
+
+test('no change, patch is empty', () => {
+    const tree = { x: 1, y: 'hello' };
+
+    const { proxy, getPatch } = recordPatch(tree);
+
+    const patch = getPatch();
+
+    expect(proxy).toEqual(tree);
+    expect(patch).toEqual({});
+});
+
+test('object root, no nesting', () => {
+    const tree: Record<string, number | string> = {};
+
+    const { proxy, getPatch } = recordPatch(tree);
+
+    proxy.x = 1;
+    proxy.y = 2;
+    proxy.x = 3;
+    proxy.z = 'hello';
+    delete proxy.y;
+
+    const patch = getPatch();
+
+    expect(patch).not.toBeNull();
+
+    expect(tree).toEqual({
+        x: 3,
+        z: 'hello',
+    });
+
+    if (patch === null) {
+        throw 'Error';
+    }
+
+    const newTree = {};
+
+    const updatedTree = applyPatch(newTree, patch);
+
+    expect(updatedTree).not.toEqual(newTree);
+    expect(updatedTree).not.toBe(newTree);
+    expect(updatedTree).toEqual(tree);
+    expect(updatedTree).not.toBe(tree);
+});
 
 test('simple objects', () => {
     const tree: any = {};
@@ -242,10 +286,7 @@ test('map and set', () => {
     });
 
     // This fails for some reason
-    // expect(proxy).toEqual(tree);
-    const a = stringify(tree);
-    const b = stringify(proxy);
-    expect(a).toEqual(b);
+    expect(proxy).toEqual(tree);
 
     const patch = getPatch();
 
@@ -295,10 +336,7 @@ test('map as root', () => {
     );
 
     // This fails for some reason
-    // expect(proxy).toEqual(tree);
-    const a = stringify(tree);
-    const b = stringify(proxy);
-    expect(a).toEqual(b);
+    expect(proxy).toEqual(tree);
 
     const patch = getPatch();
 
@@ -332,10 +370,7 @@ test('set as root', () => {
     expect(tree).toEqual(new Set(['a', 3]));
 
     // This fails for some other reason
-    //expect(proxy).toEqual(tree);
-    const a = stringify(tree);
-    const b = stringify(proxy);
-    expect(a).toEqual(b);
+    expect(proxy).toEqual(tree);
 
     const patch = getPatch();
 

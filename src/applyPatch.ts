@@ -1,5 +1,5 @@
 import { ArrayPatch, MapPatch, ObjectPatch, Patch, SetPatch } from './Patch';
-import { parse, isArray, isMap, isObject, isSet } from 'enhancejson';
+import { isArray, isMap, isObject, isSet } from './typeChecks';
 import {
     ArrayOperation,
     ArrayOperationType,
@@ -139,11 +139,7 @@ function patchSet(tree: Set<any>, patch: SetPatch) {
     return tree;
 }
 
-export function applyPatch<T extends object>(tree: T, patch: Patch | string): T {
-    if (typeof patch === 'string') {
-        patch = parse(patch) as Patch;
-    }
-
+export function applyPatch<T extends object>(tree: T, patch: Patch): T {
     if (isArray(tree)) {
         const array = tree.slice();
         return patchArray(array, patch as ArrayPatch) as T;
@@ -162,6 +158,6 @@ export function applyPatch<T extends object>(tree: T, patch: Patch | string): T 
                 ? 'Cannot apply patch, target object is missing'
                 : `Cannot apply patch, target object has unexpected type: ${typeof tree}`;
 
-        throw new Error(`${msg}: ${JSON.stringify(patch)}`);
+        throw new Error(msg);
     }
 }

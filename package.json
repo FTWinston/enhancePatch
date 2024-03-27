@@ -37,8 +37,5 @@
   },
   "files": [
     "lib/**/*"
-  ],
-  "dependencies": {
-    "enhancejson": "^1.2.0"
-  }
+  ]
 }

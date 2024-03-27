@@ -1,7 +1,7 @@
-import { isArray, isMap, isSet } from 'enhancejson';
 import { ArrayOperation, ArrayOperationType } from './ArrayOperation';
-import { ArrayPatch, MapPatch, ObjectPatch, Patch, SetPatch } from './Patch';
 import { ConditionalFilter, Filter, FilterKey, unfilteredFilter } from './Filter';
+import { ArrayPatch, MapPatch, ObjectPatch, Patch, SetPatch } from './Patch';
+import { isArray, isMap, isSet } from './typeChecks';
 
 export type FilterIdentifer = string | number | null;
 
