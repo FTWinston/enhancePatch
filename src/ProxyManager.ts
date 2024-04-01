@@ -46,6 +46,10 @@ export class ProxyManager<TRoot extends object> {
         this.rootInfo = this.createProxy(tree, rootFilters, undefined, () => {});
     }
 
+    public updateConditionalIncludes() {
+        throw new Error("TODO: implement this")
+    }
+
     public getPatches(): Map<FilterIdentifer, Patch> {
         // If addToOutput is still set, nothing has yet been added to the output. So there's no patches.
         // return this.rootInfo.addToOutput ? null : this.rootInfo.patch; 
