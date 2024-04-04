@@ -33,9 +33,15 @@ describe('no changes', () => {
     });
 
     test('map', () => {
-        const tree1 = new Map<any, any>([[1, 'hello'], ['bye', 2]]);
-        const tree2 = new Map<any, any>([[1, 'hello'], ['bye', 2]]);
-    
+        const tree1 = new Map<any, any>([
+            [1, 'hello'],
+            ['bye', 2],
+        ]);
+        const tree2 = new Map<any, any>([
+            [1, 'hello'],
+            ['bye', 2],
+        ]);
+
         const { getPatch } = recordPatch(tree1);
         const patch = getPatch();
         const updatedTree = applyPatch(tree2, patch);
@@ -46,11 +52,11 @@ describe('no changes', () => {
         expect(updatedTree).toEqual(tree2);
         expect(updatedTree).not.toBe(tree2);
     });
-    
+
     test('set', () => {
         const tree1 = new Set<any>([1, 'hello']);
         const tree2 = new Set<any>([1, 'hello']);
-    
+
         const { getPatch } = recordPatch(tree1);
         const patch = getPatch();
         const updatedTree = applyPatch(tree2, patch);
@@ -128,26 +134,26 @@ describe('modifying root', () => {
     test('map', () => {
         const tree1 = new Map<any, any>();
         const tree2 = new Map<any, any>();
-    
+
         const { proxy, getPatch } = recordPatch(tree1);
-    
+
         proxy.set('a', 1);
         proxy.set(2, 'b');
         proxy.set(2, 'c');
         proxy.set('c', { hi: 'hey' });
         proxy.delete('a');
         proxy.get('c').ha = 'ha';
-    
+
         expect(tree1.get(2)).toEqual('c');
         expect(proxy.get(2)).toEqual('c');
-    
+
         expect(tree1).toEqual(
             new Map<any, any>([
                 [2, 'c'],
                 ['c', { hi: 'hey', ha: 'ha' }],
             ])
         );
-        
+
         const patch = getPatch();
         const updatedTree = applyPatch(tree2, patch);
 
@@ -158,20 +164,20 @@ describe('modifying root', () => {
 
         expect(tree2).toEqual(new Map<any, any>());
     });
-    
+
     test('set', () => {
         const tree1 = new Set<any>();
         const tree2 = new Set<any>();
-    
+
         const { proxy, getPatch } = recordPatch(tree1);
-    
+
         proxy.add('a');
         proxy.add('b');
         proxy.add(3);
         proxy.delete('b');
-    
+
         expect(tree1).toEqual(new Set(['a', 3]));
-        
+
         const patch = getPatch();
         const updatedTree = applyPatch(tree2, patch);
 
@@ -185,12 +191,350 @@ describe('modifying root', () => {
 });
 
 describe('modifying child', () => {
-    // TODO: this
-})
+    test('object in object', () => {
+        const tree1: Record<string, any> = { child: {} };
+        const tree2: Record<string, any> = { child: {} };
+
+        const { proxy, getPatch } = recordPatch(tree1);
+
+        proxy.child.w = 1;
+        proxy.child.x = { something: 'else' };
+        proxy.child.y = 2;
+        proxy.child.w = 3;
+        proxy.child.z = 'hello';
+        delete proxy.child.y;
+
+        expect(tree1).toEqual({
+            child: {
+                w: 3,
+                x: { something: 'else' },
+                z: 'hello',
+            },
+        });
+
+        const patch = getPatch();
+        const updatedTree = applyPatch(tree2, patch);
+
+        expect(updatedTree).toEqual(tree1);
+        expect(updatedTree).not.toBe(tree1);
+        expect(updatedTree).not.toEqual(tree2);
+        expect(updatedTree).not.toBe(tree2);
+    });
+
+    test('array in array', () => {
+        const tree1: any[] = [[]];
+        const tree2: any[] = [[]];
+
+        const { proxy, getPatch } = recordPatch(tree1);
+
+        proxy[0].push('hi');
+        proxy[0].push('there');
+        proxy[0].push({ what: 'up' });
+
+        proxy[0].splice(1, 1);
+
+        proxy[0].push('hey');
+        proxy[0][1].hello = 'there';
+
+        expect(tree1).toEqual([
+            [
+                'hi',
+                {
+                    what: 'up',
+                    hello: 'there',
+                },
+                'hey',
+            ],
+        ]);
+
+        const patch = getPatch();
+        const updatedTree = applyPatch(tree2, patch);
+
+        expect(updatedTree).toEqual(tree1);
+        expect(updatedTree).not.toBe(tree1);
+        expect(updatedTree).not.toEqual(tree2);
+        expect(updatedTree).not.toBe(tree2);
+    });
+
+    test('array in object', () => {
+        const tree1: Record<string, any> = { child: [] };
+        const tree2: Record<string, any> = { child: [] };
+
+        const { proxy, getPatch } = recordPatch(tree1);
+
+        proxy.child.push('hi');
+        proxy.child.push('there');
+        proxy.child.push({ what: 'up' });
+
+        proxy.child.splice(1, 1);
+
+        proxy.child.push('hey');
+        proxy.child[1].hello = 'there';
+
+        expect(tree1).toEqual({
+            child: [
+                'hi',
+                {
+                    what: 'up',
+                    hello: 'there',
+                },
+                'hey',
+            ],
+        });
+
+        const patch = getPatch();
+        const updatedTree = applyPatch(tree2, patch);
+
+        expect(updatedTree).toEqual(tree1);
+        expect(updatedTree).not.toBe(tree1);
+        expect(updatedTree).not.toEqual(tree2);
+        expect(updatedTree).not.toBe(tree2);
+    });
+
+    test('object in array', () => {
+        const tree1: Record<string, any> = [{}];
+        const tree2: Record<string, any> = [{}];
+
+        const { proxy, getPatch } = recordPatch(tree1);
+
+        proxy[0].w = 1;
+        proxy[0].x = { something: 'else' };
+        proxy[0].y = 2;
+        proxy[0].w = 3;
+        proxy[0].z = 'hello';
+        delete proxy[0].y;
+
+        expect(tree1).toEqual([
+            {
+                w: 3,
+                x: { something: 'else' },
+                z: 'hello',
+            },
+        ]);
+
+        const patch = getPatch();
+        const updatedTree = applyPatch(tree2, patch);
+
+        expect(updatedTree).toEqual(tree1);
+        expect(updatedTree).not.toBe(tree1);
+        expect(updatedTree).not.toEqual(tree2);
+        expect(updatedTree).not.toBe(tree2);
+    });
+
+    test('Map in object', () => {
+        const tree1: Record<string, any> = { m: new Map() };
+        const tree2: Record<string, any> = { m: new Map() };
+
+        const { proxy, getPatch } = recordPatch(tree1);
+
+        proxy.m.set('a', 1);
+        proxy.m.set(2, 'b');
+        proxy.m.set(2, 'c');
+        proxy.m.set('c', { hi: 'hey' });
+        proxy.m.delete('a');
+        proxy.m.get('c').ha = 'ha';
+
+        expect(tree1.m.get(2)).toEqual('c');
+        expect(proxy.m.get(2)).toEqual('c');
+
+        expect(tree1).toEqual({
+            m: new Map<any, any>([
+                [2, 'c'],
+                ['c', { hi: 'hey', ha: 'ha' }],
+            ]),
+        });
+
+        const patch = getPatch();
+        const updatedTree = applyPatch(tree2, patch);
+
+        expect(updatedTree).toEqual(tree1);
+        expect(updatedTree).not.toBe(tree1);
+        expect(updatedTree).not.toEqual(tree2);
+        expect(updatedTree).not.toBe(tree2);
+
+        expect(tree2).toEqual({ m: new Map() });
+    });
+
+    test('object in Map', () => {
+        const tree1: Map<number, Record<string, any>> = new Map([[1, {}]]);
+        const tree2: Map<number, Record<string, any>> = new Map([[1, {}]]);
+
+        const { proxy, getPatch } = recordPatch(tree1);
+
+        proxy.get(1)!.w = 1;
+        proxy.get(1)!.x = { something: 'else' };
+        proxy.get(1)!.y = 2;
+        proxy.get(1)!.w = 3;
+        proxy.get(1)!.z = 'hello';
+        delete proxy.get(1)!.y;
+
+        expect(tree1).toEqual(
+            new Map([
+                [
+                    1,
+                    {
+                        w: 3,
+                        x: { something: 'else' },
+                        z: 'hello',
+                    },
+                ],
+            ])
+        );
+
+        const patch = getPatch();
+        const updatedTree = applyPatch(tree2, patch);
+
+        expect(updatedTree).toEqual(tree1);
+        expect(updatedTree).not.toBe(tree1);
+        expect(updatedTree).not.toEqual(tree2);
+        expect(updatedTree).not.toBe(tree2);
+    });
+
+    test('Map in Map', () => {
+        const tree1: Record<string, any> = new Map([[1, new Map()]]);
+        const tree2: Record<string, any> = new Map([[1, new Map()]]);
+
+        const { proxy, getPatch } = recordPatch(tree1);
+
+        proxy.get(1).set('a', 1);
+        proxy.get(1).set(2, 'b');
+        proxy.get(1).set(2, 'c');
+        proxy.get(1).set('c', { hi: 'hey' });
+        proxy.get(1).delete('a');
+        proxy.get(1).get('c').ha = 'ha';
+
+        expect(tree1.get(1).get(2)).toEqual('c');
+        expect(proxy.get(1).get(2)).toEqual('c');
+
+        expect(tree1).toEqual(
+            new Map([
+                [
+                    1,
+                    new Map<any, any>([
+                        [2, 'c'],
+                        ['c', { hi: 'hey', ha: 'ha' }],
+                    ]),
+                ],
+            ])
+        );
+
+        const patch = getPatch();
+        const updatedTree = applyPatch(tree2, patch);
+
+        expect(updatedTree).toEqual(tree1);
+        expect(updatedTree).not.toBe(tree1);
+        expect(updatedTree).not.toEqual(tree2);
+        expect(updatedTree).not.toBe(tree2);
+
+        expect(tree2).toEqual(new Map([[1, new Map()]]));
+    });
+
+    test('Map in array', () => {
+        const tree1: Record<string, any> = [new Map()];
+        const tree2: Record<string, any> = [new Map()];
+
+        const { proxy, getPatch } = recordPatch(tree1);
+
+        proxy[0].set('a', 1);
+        proxy[0].set(2, 'b');
+        proxy[0].set(2, 'c');
+        proxy[0].set('c', { hi: 'hey' });
+        proxy[0].delete('a');
+        proxy[0].get('c').ha = 'ha';
+
+        expect(tree1[0].get(2)).toEqual('c');
+        expect(proxy[0].get(2)).toEqual('c');
+
+        expect(tree1).toEqual([
+            new Map<any, any>([
+                [2, 'c'],
+                ['c', { hi: 'hey', ha: 'ha' }],
+            ]),
+        ]);
+
+        const patch = getPatch();
+        const updatedTree = applyPatch(tree2, patch);
+
+        expect(updatedTree).toEqual(tree1);
+        expect(updatedTree).not.toBe(tree1);
+        expect(updatedTree).not.toEqual(tree2);
+        expect(updatedTree).not.toBe(tree2);
+
+        expect(tree2).toEqual([new Map()]);
+    });
+
+    test('array in Map', () => {
+        const tree1: Map<string, any[]> = new Map([['a', []]]);
+        const tree2: Map<string, any[]> = new Map([['a', []]]);
+
+        const { proxy, getPatch } = recordPatch(tree1);
+
+        proxy.get('a')!.push('hi');
+        proxy.get('a')!.push('there');
+        proxy.get('a')!.push({ what: 'up' });
+
+        proxy.get('a')!.splice(1, 1);
+
+        proxy.get('a')!.push('hey');
+        proxy.get('a')![1].hello = 'there';
+
+        expect(tree1).toEqual(
+            new Map([
+                [
+                    'a',
+                    [
+                        'hi',
+                        {
+                            what: 'up',
+                            hello: 'there',
+                        },
+                        'hey',
+                    ],
+                ],
+            ])
+        );
+
+        const patch = getPatch();
+        const updatedTree = applyPatch(tree2, patch);
+
+        expect(updatedTree).toEqual(tree1);
+        expect(updatedTree).not.toBe(tree1);
+        expect(updatedTree).not.toEqual(tree2);
+        expect(updatedTree).not.toBe(tree2);
+    });
+
+    test('Set in object', () => {
+        // TODO: this
+    });
+
+    test('object in Set', () => {
+        // TODO: this
+    });
+
+    test('Set in Set', () => {
+        // TODO: this
+    });
+
+    test('Set in array', () => {
+        // TODO: this
+    });
+
+    test('array in Set', () => {
+        // TODO: this
+    });
+
+    test('Set in Map', () => {
+        // TODO: this
+    });
+
+    test('Map in Set', () => {
+        // TODO: this
+    });
+});
 
 describe('modifying grandchild', () => {
     // TODO: this
-})
+});
 
 test('simple objects', () => {
     const tree: any = {};
@@ -223,8 +567,6 @@ test('simple objects', () => {
     expect(proxy).toEqual(tree);
 
     const patch = getPatch();
-
-    
 
     if (patch !== null) {
         const newTree = {};
@@ -270,8 +612,6 @@ test('array, all in one', () => {
     expect(proxy).toEqual(tree);
 
     const patch = getPatch();
-
-    
 
     if (patch !== null) {
         const newTree = {};
@@ -389,8 +729,6 @@ test('map and set', () => {
 
     const patch = getPatch();
 
-    
-
     if (patch !== null) {
         const newTree = {
             map: new Map<any, any>(),
@@ -430,8 +768,6 @@ test('date', () => {
 
     const patch = getPatch();
 
-    
-
     if (patch !== null) {
         const newTree = {};
 
@@ -447,6 +783,4 @@ test('date', () => {
     expect(subsequentPatch).toBe(patch);
 });
 
-test('subsequent patches not allowed', () => {
-
-});
+test('subsequent patches not allowed', () => {});
