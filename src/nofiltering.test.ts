@@ -1810,19 +1810,13 @@ test('simple objects', () => {
 
     const patch = getPatch();
 
-    if (patch !== null) {
-        const newTree = {};
+    const newTree = {};
 
-        const updatedTree = applyPatch(newTree, patch);
+    const updatedTree = applyPatch(newTree, patch);
 
-        expect(updatedTree).toEqual(tree);
+    expect(updatedTree).toEqual(tree);
 
-        expect(newTree).toEqual({});
-    }
-
-    const subsequentPatch = getPatch();
-
-    expect(subsequentPatch).toBe(patch);
+    expect(newTree).toEqual({});
 });
 
 test('array, all in one', () => {
@@ -1855,19 +1849,13 @@ test('array, all in one', () => {
 
     const patch = getPatch();
 
-    if (patch !== null) {
-        const newTree = {};
+    const newTree = {};
 
-        const updatedTree = applyPatch(newTree, patch);
+    const updatedTree = applyPatch(newTree, patch);
 
-        expect(updatedTree).toEqual(tree);
+    expect(updatedTree).toEqual(tree);
 
-        expect(newTree).toEqual({});
-    }
-
-    const subsequentPatch = getPatch();
-
-    expect(subsequentPatch).toBe(patch);
+    expect(newTree).toEqual({});
 });
 
 test('array, separate', () => {
@@ -1878,10 +1866,6 @@ test('array, separate', () => {
     proxy.a = [];
 
     const firstPatch = getPatch();
-
-    if (firstPatch === null) {
-        return;
-    }
 
     const firstPatchedTree = applyPatch({}, firstPatch);
 
@@ -1924,18 +1908,11 @@ test('array, separate', () => {
 
     expect(patch2).not.toBeNull();
 
-    if (patch2 !== null) {
-        const updatedTree = applyPatch(firstPatchedTree, patch2);
+    const updatedTree = applyPatch(firstPatchedTree, patch2);
 
-        expect(updatedTree).toEqual(tree);
+    expect(updatedTree).toEqual(tree);
 
-        expect(firstPatchedTree).toEqual({ a: [] });
-    }
-
-    const subsequentPatch = getPatch();
-
-    expect(subsequentPatch).not.toBe(firstPatch);
-    expect(subsequentPatch).not.toBe(patch2);
+    expect(firstPatchedTree).toEqual({ a: [] });
 });
 
 test('map and set', () => {
@@ -1986,10 +1963,6 @@ test('map and set', () => {
             set: new Set<any>(),
         });
     }
-
-    const subsequentPatch = getPatch();
-
-    expect(subsequentPatch).toBe(patch);
 });
 
 test('date', () => {
@@ -2010,19 +1983,25 @@ test('date', () => {
 
     const patch = getPatch();
 
-    if (patch !== null) {
-        const newTree = {};
+    const newTree = {};
 
-        const updatedTree = applyPatch(newTree, patch);
+    const updatedTree = applyPatch(newTree, patch);
 
-        expect(updatedTree).toEqual(tree);
+    expect(updatedTree).toEqual(tree);
 
-        expect(newTree).toEqual({});
-    }
-
-    const subsequentPatch = getPatch();
-
-    expect(subsequentPatch).toBe(patch);
+    expect(newTree).toEqual({});
 });
 
-test('subsequent patches not allowed', () => {});
+test('subsequent patches not allowed', () => {
+    const tree = { this: 1 };
+
+    const { proxy, getPatch } = recordPatch(tree);
+
+    proxy.this = 2;
+
+    const patch = getPatch();
+
+    expect(() => {
+        getPatch();
+    }).toThrowError('Cannot retrieve patches multiple times');
+});

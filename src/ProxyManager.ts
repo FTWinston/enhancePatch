@@ -60,7 +60,14 @@ export class ProxyManager<TRoot extends object> {
         throw new Error('TODO: implement this');
     }
 
+    private alreadyGotPatch = false;
+
     public getPatches(): Map<FilterIdentifer, Patch> {
+        if (this.alreadyGotPatch) {
+            throw new Error('Cannot retrieve patches multiple times');
+        }
+        this.alreadyGotPatch = true;
+
         // If addToOutput is still set, nothing has yet been added to the output. So there's no patches.
         // return this.rootInfo.addToOutput ? null : this.rootInfo.patch;
         // TODO: recreate above logic?
