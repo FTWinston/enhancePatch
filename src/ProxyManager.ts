@@ -91,8 +91,8 @@ export class ProxyManager<TRoot extends object> {
             return true;
         }
 
-        const fieldConditionalFilter = this.getFilterField(filterFields, field)
-        
+        const fieldConditionalFilter = this.getFilterField(filterFields, field);
+
         if (fieldConditionalFilter === undefined) {
             return false;
         }
@@ -549,11 +549,12 @@ export class ProxyManager<TRoot extends object> {
                                                   if (
                                                       !this.shouldIncludeChild(
                                                           filter,
-                                                          field
+                                                          key
                                                       )
                                                   ) {
                                                       continue;
                                                   }
+
                                                   if (patch.c === undefined) {
                                                       patch.c = {};
                                                   }
@@ -572,6 +573,20 @@ export class ProxyManager<TRoot extends object> {
                                                   filterIdentifier,
                                                   patch,
                                               ] of info.patches) {
+                                                  const filter =
+                                                      info.filters.get(
+                                                          filterIdentifier
+                                                      );
+
+                                                  if (
+                                                      !this.shouldIncludeChild(
+                                                          filter,
+                                                          key
+                                                      )
+                                                  ) {
+                                                      continue;
+                                                  }
+
                                                   if (patch.C === undefined) {
                                                       patch.C = {};
                                                   }
@@ -613,7 +628,7 @@ export class ProxyManager<TRoot extends object> {
                                 const filter =
                                     info.filters.get(filterIdentifier);
 
-                                if (!this.shouldIncludeChild(filter, field)) {
+                                if (!this.shouldIncludeChild(filter, key)) {
                                     continue;
                                 }
 
