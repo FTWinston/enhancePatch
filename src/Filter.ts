@@ -1,15 +1,12 @@
 export type FilterKey = string | number;
 
-export type ConditionalFilter = {
-    include: boolean | ((key: FilterKey) => boolean);
-    filter?: Filter;
+type Conditional = {
+    include?: (key: FilterKey) => boolean;
 };
 
 export type Filter = {
-    fixedKeys?: Map<FilterKey, ConditionalFilter>;
+    fixedKeys?: Partial<Record<FilterKey, ConditionalFilter | true>>;
     otherKeys?: ConditionalFilter;
 };
 
-export const unfilteredFilter: ConditionalFilter = {
-    include: true,
-};
+export type ConditionalFilter = Filter & Conditional;

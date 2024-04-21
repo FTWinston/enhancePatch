@@ -1,4 +1,4 @@
-import { Filter } from './Filter';
+import { ConditionalFilter, Filter } from './Filter';
 import { applyPatch } from './applyPatch';
 import { recordPatch } from './recordPatch';
 
@@ -20,20 +20,15 @@ test('empty filter', () => {
     expect(updatedTree).toEqual(tree2);
 });
 
-describe('include true, single fixed key', () => {
+describe('modify root, include true, single fixed key', () => {
     test('reassign existing object field', () => {
         const tree1: Record<string, number> = { x: 1, y: 2 };
         const tree2: Record<string, number> = { x: 1, y: 2 };
 
         const filter: Filter = {
-            fixedKeys: new Map([
-                [
-                    'x',
-                    {
-                        include: true,
-                    },
-                ],
-            ]),
+            fixedKeys: {
+                x: {}
+            }
         };
 
         const { proxy, getPatch } = recordPatch(tree1, filter);
@@ -56,14 +51,9 @@ describe('include true, single fixed key', () => {
         const tree2: Record<string, number> = {};
 
         const filter: Filter = {
-            fixedKeys: new Map([
-                [
-                    'x',
-                    {
-                        include: true,
-                    },
-                ],
-            ]),
+            fixedKeys: {
+                x: {}
+            }
         };
 
         const { proxy, getPatch } = recordPatch(tree1, filter);
@@ -85,14 +75,9 @@ describe('include true, single fixed key', () => {
         const tree2: Record<string, number> = { x: 1, y: 2 };
 
         const filter: Filter = {
-            fixedKeys: new Map([
-                [
-                    'x',
-                    {
-                        include: true,
-                    },
-                ],
-            ]),
+            fixedKeys: {
+                x: {}
+            }
         };
 
         const { proxy, getPatch } = recordPatch(tree1, filter);
@@ -109,7 +94,61 @@ describe('include true, single fixed key', () => {
         });
     });
 
-    // TODO: Equivalent array tests
+    test('reassign existing array item', () => {
+        const tree1: string[] = ['a', 'b'];
+        const tree2: string[] = ['a', 'b'];
+
+        const filter: Filter = {
+            fixedKeys: {
+                x: {}
+            }
+        };
+
+        const { proxy, getPatch } = recordPatch(tree1, filter);
+
+        proxy[0] = 'A';
+        proxy[1] = 'B';
+
+        const patch = getPatch();
+
+        const updatedTree = applyPatch(tree2, patch);
+
+        expect(updatedTree).toEqual(['A']);
+    });
+
+    test('add new array item', () => {
+        const tree1: string[] = [];
+        const tree2: string[] = [];
+
+        const filter: Filter = {
+            fixedKeys: {
+                x: {}
+            }
+        };
+
+        const { proxy, getPatch } = recordPatch(tree1, filter);
+
+        proxy[0] = 'A';
+        proxy[1] = 'B';
+
+        const patch = getPatch();
+
+        const updatedTree = applyPatch(tree2, patch);
+
+        expect(updatedTree).toEqual(['A']);
+    });
+
+    // TODO: array delete test
+
+    // TODO: array push test
+
+    // TODO: array splice test
+
+    // TODO: array shift test
+
+    // TODO: array unshift test
+
+    // TODO: array reverse test
 
     test('reassign existing Map entry', () => {
         const tree1: Map<string, number> = new Map([
@@ -122,14 +161,9 @@ describe('include true, single fixed key', () => {
         ]);
 
         const filter: Filter = {
-            fixedKeys: new Map([
-                [
-                    'x',
-                    {
-                        include: true,
-                    },
-                ],
-            ]),
+            fixedKeys: {
+                x: {}
+            }
         };
 
         const { proxy, getPatch } = recordPatch(tree1, filter);
@@ -154,14 +188,9 @@ describe('include true, single fixed key', () => {
         const tree2: Map<string, number> = new Map();
 
         const filter: Filter = {
-            fixedKeys: new Map([
-                [
-                    'x',
-                    {
-                        include: true,
-                    },
-                ],
-            ]),
+            fixedKeys: {
+                x: {}
+            }
         };
 
         const { proxy, getPatch } = recordPatch(tree1, filter);
@@ -187,14 +216,9 @@ describe('include true, single fixed key', () => {
         ]);
 
         const filter: Filter = {
-            fixedKeys: new Map([
-                [
-                    'x',
-                    {
-                        include: true,
-                    },
-                ],
-            ]),
+            fixedKeys: {
+                x: {}
+            }
         };
 
         const { proxy, getPatch } = recordPatch(tree1, filter);
@@ -215,3 +239,10 @@ describe('include true, single fixed key', () => {
 // TODO: otherFields test, fixed include
 
 // TODO: otherFields test, include function
+
+// TODO: modify child tests
+
+
+const exampleFilter: Filter = {
+    
+}

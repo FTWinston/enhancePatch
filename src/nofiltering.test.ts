@@ -1895,3 +1895,11 @@ test('subsequent patches not allowed', () => {
         getPatch();
     }).toThrowError('Cannot retrieve patches multiple times');
 });
+
+// TODO: array delete test
+
+// TODO: array shift test
+
+// TODO: array unshift test
+
+// TODO: array reverse test

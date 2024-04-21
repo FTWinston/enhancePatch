@@ -3,7 +3,6 @@ import {
     ConditionalFilter,
     Filter,
     FilterKey,
-    unfilteredFilter,
 } from './Filter';
 import { ArrayPatch, MapPatch, ObjectPatch, Patch, SetPatch } from './Patch';
 import { isArray, isMap, isSet } from './typeChecks';
@@ -45,7 +44,7 @@ export class ProxyManager<TRoot extends object> {
     constructor(tree: TRoot, filters: Map<FilterIdentifer, Filter>) {
         const rootFilters = new Map<FilterIdentifer, ConditionalFilter>();
         for (const [identifier, filter] of filters) {
-            rootFilters.set(identifier, { include: true, filter });
+            rootFilters.set(identifier, { ...filter });
         }
 
         this.rootInfo = this.createProxy(
@@ -76,30 +75,36 @@ export class ProxyManager<TRoot extends object> {
         filter: Filter,
         field: FilterKey
     ): ConditionalFilter | undefined {
-        let specificFilter = filter.fixedKeys?.get(field);
+        const specificFilter = filter.fixedKeys?.[field];
+
+        if (specificFilter === true) {
+            return {};
+        }
 
         return specificFilter ?? filter.otherKeys;
     }
 
     private shouldIncludeChild(
-        conditionalFilter: ConditionalFilter | undefined,
+        filter: ConditionalFilter | undefined,
         field: FilterKey
     ): boolean {
-        const filterFields = conditionalFilter?.filter;
-
-        if (filterFields === undefined) {
+        // TODO: this extra check is silly.
+        if (
+            filter === undefined ||
+            (filter.fixedKeys === undefined && filter.otherKeys === undefined)
+        ) {
             return true;
         }
 
-        const fieldConditionalFilter = this.getFilterField(filterFields, field);
+        const fieldFilter = this.getFilterField(filter, field);
 
-        if (fieldConditionalFilter === undefined) {
+        if (fieldFilter === undefined) {
             return false;
         }
 
-        return typeof fieldConditionalFilter.include === 'boolean'
-            ? fieldConditionalFilter.include
-            : fieldConditionalFilter.include(field);
+        return fieldFilter.include
+            ? fieldFilter.include(field)
+            : true;
     }
 
     private getChildFilters(
@@ -108,12 +113,14 @@ export class ProxyManager<TRoot extends object> {
     ): Map<FilterIdentifer, ConditionalFilter> {
         const results = new Map<FilterIdentifer, ConditionalFilter>();
 
-        for (const [identifier, conditionalFilter] of filters) {
-            const fieldFilter = conditionalFilter.filter
-                ? this.getFilterField(conditionalFilter.filter, field)
-                : unfilteredFilter;
+        for (const [identifier, filter] of filters) {
+            // TODO: this extra check is silly.
+            const fieldFilter =
+                filter.fixedKeys !== undefined || filter.otherKeys !== undefined
+                    ? this.getFilterField(filter, field)
+                    : {};
 
-            if (fieldFilter && fieldFilter.include !== false) {
+            if (fieldFilter) {
                 results.set(identifier, fieldFilter);
             }
         }
@@ -180,10 +187,7 @@ export class ProxyManager<TRoot extends object> {
                 (target as any)[field] = val;
 
                 if (typeof field === 'string') {
-                    for (const [
-                        filterIdentifier,
-                        patch,
-                    ] of info.patches.entries()) {
+                    for (const [filterIdentifier, patch] of info.patches) {
                         const filter = info.filters.get(filterIdentifier);
 
                         if (!this.shouldIncludeChild(filter, field)) {
@@ -220,10 +224,7 @@ export class ProxyManager<TRoot extends object> {
                 delete (target as any)[field];
 
                 if (typeof field === 'string') {
-                    for (const [
-                        filterIdentifier,
-                        patch,
-                    ] of info.patches.entries()) {
+                    for (const [filterIdentifier, patch] of info.patches) {
                         const filter = info.filters.get(filterIdentifier);
 
                         if (!this.shouldIncludeChild(filter, field)) {
@@ -405,7 +406,7 @@ export class ProxyManager<TRoot extends object> {
                             for (const [
                                 filterIdentifier,
                                 patch,
-                            ] of info.patches.entries()) {
+                            ] of info.patches) {
                                 const filter =
                                     info.filters.get(filterIdentifier);
 
@@ -624,7 +625,7 @@ export class ProxyManager<TRoot extends object> {
                             for (const [
                                 filterIdentifier,
                                 patch,
-                            ] of info.patches.entries()) {
+                            ] of info.patches) {
                                 const filter =
                                     info.filters.get(filterIdentifier);
 
@@ -666,7 +667,7 @@ export class ProxyManager<TRoot extends object> {
                             for (const [
                                 filterIdentifier,
                                 patch,
-                            ] of info.patches.entries()) {
+                            ] of info.patches) {
                                 const filter =
                                     info.filters.get(filterIdentifier);
 
