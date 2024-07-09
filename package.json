@@ -20,7 +20,6 @@
     "url": "git+https://github.com/FTWinston/megapatch.git"
   },
   "keywords": [
-    "json",
     "patch",
     "patcher",
     "serialization",
