@@ -139,6 +139,12 @@ function patchSet(tree: Set<any>, patch: SetPatch) {
     return tree;
 }
 
+/**
+ * Apply a patch to a known object tree, returning a new object tree that is the result of doing this.
+ * @param tree object tree to which the patch should be applied
+ * @param patch patch to apply to the tree
+ * @returns A new object tree that is the result of applying the patch
+ */
 export function applyPatch<T extends object>(tree: T, patch: Patch): T {
     if (isArray(tree)) {
         const array = tree.slice();

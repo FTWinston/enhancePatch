@@ -1,29 +1,53 @@
 import { ArrayOperation } from './ArrayOperation';
 
+/** A patch object, which will be intended to be applied to a specific `Object`, `Array`, `Map` or `Set`. */
 export type Patch = ObjectPatch | ArrayPatch | MapPatch | SetPatch;
 
+/**
+ * A patch to be applied to an `Object`.
+ */
 export interface ObjectPatch {
-    s?: Record<string, any>; // keys to set
-    d?: string[]; // keys to delete
-    c?: Record<string, Patch>; // children
+    /** keys to set */
+    s?: Record<string, any>;
+    /** keys to delete */
+    d?: string[];
+    /** children */
+    c?: Record<string, Patch>;
 }
 
+/**
+ * A patch to be applied to an `Array`.
+ * Note that a shift/unshift/splice/reverse operation will update many children's indexes.
+ */
 export interface ArrayPatch {
-    o?: ArrayOperation[]; // operations
-    c?: Record<number, Patch>; // children
-    // NOTE: A shift/unshift/splice/reverse will need to update some/all children's numbers, somehow.
+    /** operations */
+    o?: ArrayOperation[];
+    /** children */
+    c?: Record<number, Patch>;
 }
 
 type MapKey = string | number;
 
+/**
+ * A patch to be applied to a `Map`.
+ */
 export interface MapPatch {
-    s?: Array<[MapKey, any]>; // elements to set
-    d?: true | MapKey[]; // keys to delete
-    c?: Record<string, Patch>; // string-keyed children
-    C?: Record<number, Patch>; // number-keyed children
+    /** elements to set */
+    s?: Array<[MapKey, any]>;
+    /** If true: clear all, if array: delete specified keys */
+    d?: true | MapKey[];
+    /** string-keyed children */
+    c?: Record<string, Patch>;
+    /** number-keyed children */
+    C?: Record<number, Patch>;
 }
 
+/**
+ * A patch to be applied to a `Set`.
+ */
 export interface SetPatch {
-    a?: MapKey[]; // elements to add
-    d?: true | MapKey[]; // clear all, or delete keys
+    /** elements to add */
+    a?: MapKey[];
+    /** If true: clear all, if array: delete specified keys */
+    d?: true | MapKey[]; // 
 }
