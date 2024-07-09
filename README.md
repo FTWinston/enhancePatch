@@ -50,7 +50,7 @@ expect(updatedData).toEqual(data);
 expect(updatedData).not.toEqual(newData);
 ```
 
-Megapatch uses [enhanceJSON](https://github.com/FTWinston/enhanceJSON) to stringify and parse JSON.
+Not all megapatch patch objects will serialize to and deserialize from JSON. (This will happen, for example, if your tree contains `Map` or `Date` objects.) For this reason, it is recommended to use [superjson](https://github.com/blitz-js/superjson) to stringify and parse patches.
 
 ## Patch structure
 _Note that knowledge of the patch structure is not required to use megapatch to record or apply patches. This section is included for information only._
