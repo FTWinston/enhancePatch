@@ -9,7 +9,7 @@
   "types": "lib/cjs/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
-    "prepare": "npm run build",
+    "prepublishOnly": "npm run build",
     "test": "npx jest",
     "tidy": "npx prettier --tab-width 4 --single-quote true --write src"
   },
