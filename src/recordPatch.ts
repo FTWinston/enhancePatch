@@ -56,7 +56,7 @@ export function recordPatch<T extends object>(tree: T): PatchReturnValue<T>;
  */
 export function recordPatch<T extends object>(
     tree: T,
-    filter: Filter
+    filter: Filter,
 ): SingleFilterPatchReturnValue<T>;
 /**
  * Indicate that you wish to begin tracking and filtering multiple sets of changes to an object tree, to subsequently generate patches of those changes.
@@ -66,11 +66,11 @@ export function recordPatch<T extends object>(
  */
 export function recordPatch<T extends object>(
     tree: T,
-    filter: Map<SpecifiedFilterIdentifier, Filter>
+    filter: Map<SpecifiedFilterIdentifier, Filter>,
 ): MultiFilterReturnValue<T>;
 export function recordPatch<T extends object>(
     tree: T,
-    filter?: Filter | Map<SpecifiedFilterIdentifier, Filter>
+    filter?: Filter | Map<SpecifiedFilterIdentifier, Filter>,
 ):
     | PatchReturnValue<T>
     | SingleFilterPatchReturnValue<T>

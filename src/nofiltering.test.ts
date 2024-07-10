@@ -151,7 +151,7 @@ describe('modifying root', () => {
             new Map<any, any>([
                 [2, 'c'],
                 ['c', { hi: 'hey', ha: 'ha' }],
-            ])
+            ]),
         );
 
         const patch = getPatch();
@@ -378,7 +378,7 @@ describe('modifying child', () => {
                         z: 'hello',
                     },
                 ],
-            ])
+            ]),
         );
 
         const patch = getPatch();
@@ -415,7 +415,7 @@ describe('modifying child', () => {
                         ['c', { hi: 'hey', ha: 'ha' }],
                     ]),
                 ],
-            ])
+            ]),
         );
 
         const patch = getPatch();
@@ -491,7 +491,7 @@ describe('modifying child', () => {
                         'hey',
                     ],
                 ],
-            ])
+            ]),
         );
 
         const patch = getPatch();
@@ -1410,7 +1410,7 @@ describe('modifying grandchild', () => {
                         },
                     },
                 ],
-            ])
+            ]),
         );
 
         const patch = getPatch();
@@ -1452,7 +1452,7 @@ describe('modifying grandchild', () => {
                         ],
                     ],
                 ],
-            ])
+            ]),
         );
 
         const patch = getPatch();
@@ -1498,7 +1498,7 @@ describe('modifying grandchild', () => {
                         ],
                     },
                 ],
-            ])
+            ]),
         );
 
         const patch = getPatch();
@@ -1535,7 +1535,7 @@ describe('modifying grandchild', () => {
                         },
                     ],
                 ],
-            ])
+            ]),
         );
 
         const patch = getPatch();
@@ -1578,7 +1578,7 @@ describe('modifying grandchild', () => {
                         ]),
                     },
                 ],
-            ])
+            ]),
         );
 
         const patch = getPatch();
@@ -1624,7 +1624,7 @@ describe('modifying grandchild', () => {
                         ],
                     ]),
                 ],
-            ])
+            ]),
         );
 
         const patch = getPatch();
@@ -1670,7 +1670,7 @@ describe('modifying grandchild', () => {
                         ],
                     ]),
                 ],
-            ])
+            ]),
         );
 
         const patch = getPatch();
@@ -1715,7 +1715,7 @@ describe('modifying grandchild', () => {
                         ]),
                     ],
                 ],
-            ])
+            ]),
         );
 
         const patch = getPatch();
@@ -1766,7 +1766,7 @@ describe('modifying grandchild', () => {
                         ],
                     ]),
                 ],
-            ])
+            ]),
         );
 
         const patch = getPatch();
@@ -1838,7 +1838,7 @@ describe('modifying grandchild', () => {
         proxy.get('1')!.get('a')!.delete('b');
 
         expect(tree1).toEqual(
-            new Map([['1', new Map([['a', new Set(['a', 3])]])]])
+            new Map([['1', new Map([['a', new Set(['a', 3])]])]]),
         );
 
         const patch = getPatch();
@@ -1850,7 +1850,7 @@ describe('modifying grandchild', () => {
         expect(updatedTree).not.toBe(tree2);
 
         expect(tree2).toEqual(
-            new Map([['1', new Map([['a', new Set<any>()]])]])
+            new Map([['1', new Map([['a', new Set<any>()]])]]),
         );
     });
 });

@@ -8,11 +8,11 @@ export type Patch = ObjectPatch | ArrayPatch | MapPatch | SetPatch;
  */
 export interface ObjectPatch {
     /** keys to set */
-    s?: Record<string, any>;
+    s?: Map<string, any>;
     /** keys to delete */
-    d?: string[];
+    d?: Set<string>;
     /** children */
-    c?: Record<string, Patch>;
+    c?: Map<string, Patch>;
 }
 
 /**
@@ -23,23 +23,21 @@ export interface ArrayPatch {
     /** operations */
     o?: ArrayOperation[];
     /** children */
-    c?: Record<number, Patch>;
+    c?: Map<number, Patch>;
 }
 
-type MapKey = string | number;
+export type MapKey = string | number;
 
 /**
  * A patch to be applied to a `Map`.
  */
 export interface MapPatch {
     /** elements to set */
-    s?: Array<[MapKey, any]>;
+    s?: Map<MapKey, any>;
     /** If true: clear all, if array: delete specified keys */
-    d?: true | MapKey[];
-    /** string-keyed children */
-    c?: Record<string, Patch>;
-    /** number-keyed children */
-    C?: Record<number, Patch>;
+    d?: true | Set<MapKey>;
+    /** children */
+    c?: Map<MapKey, Patch>;
 }
 
 /**
@@ -47,7 +45,7 @@ export interface MapPatch {
  */
 export interface SetPatch {
     /** elements to add */
-    a?: MapKey[];
+    a?: Set<MapKey>;
     /** If true: clear all, if array: delete specified keys */
-    d?: true | MapKey[]; // 
+    d?: true | Set<MapKey>;
 }

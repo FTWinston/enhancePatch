@@ -145,7 +145,7 @@ describe('include true, single fixed key', () => {
             new Map([
                 ['x', 2],
                 ['y', 2],
-            ])
+            ]),
         );
     });
 
