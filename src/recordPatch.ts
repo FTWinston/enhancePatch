@@ -6,7 +6,10 @@ import { FilterIdentifer, ProxyManager } from './ProxyManager';
 type PatchReturnValue<T> = {
     /** Proxy of the object tree, through which all modifications should be applied */
     proxy: T;
-    /** Function to get the patch representing all modifications made to the object tree */
+    /**
+     * Function to get the patch representing all modifications made to the object tree.
+     * Should only be called one time: subsequent calls will throw an error.
+     */
     getPatch: () => Patch;
 };
 
@@ -16,7 +19,10 @@ type SingleFilterPatchReturnValue<T> = {
     proxy: T;
     /** Function to trigger recalcuation of all conditional include in the patch */
     updateConditionalIncludes: () => void;
-    /** function to get the patch representing all filtered modifications made to the object tree */
+    /**
+     * Function to get the patch representing all filtered modifications made to the object tree.
+     * Should only be called one time: subsequent calls will throw an error.
+     */
     getPatch: () => Patch;
 };
 
@@ -26,7 +32,10 @@ type MultiFilterReturnValue<T> = {
     proxy: T;
     /** Function to trigger recalcuation of all conditional include in the patch */
     updateConditionalIncludes: () => void;
-    /** function to get the patches representing all filtered modifications made to the object tree */
+    /**
+     * Function to get the patches representing all filtered modifications made to the object tree.
+     * Should only be called one time: subsequent calls will throw an error.
+     */
     getPatches: () => Map<SpecifiedFilterIdentifier, Patch>;
 };
 
@@ -35,14 +44,14 @@ type SpecifiedFilterIdentifier = Exclude<FilterIdentifer, null>;
 
 /**
  * Indicate that you wish to begin tracking all changes to an object tree, to subsequently generate a patch of those changes.
- * @param tree Object tree which will be proxied, to track any modifications
+ * @param tree Object tree which will be proxied, to track any modifications.
  * @returns A proxy of the tree which should have all modifications applied to it, and a method to retrieve a patch representing those changes.
  */
 export function recordPatch<T extends object>(tree: T): PatchReturnValue<T>;
 /**
  * Indicate that you wish to begin tracking and filtering changes to an object tree, to subsequently generate a patch of those changes.
- * @param tree Object tree which will be proxied, to track any modifications
- * @param filter Filter to use when determining whether a change should be included in the recorded patch
+ * @param tree Object tree which will be proxied, to track any modifications.
+ * @param filter Filter to use when determining whether a change should be included in the recorded patch.
  * @returns A proxy of the tree which should have filtered modifications applied to it, a method to trigger updating of any conditional filters, and a method to retrieve a patch representing those changes.
  */
 export function recordPatch<T extends object>(
@@ -51,7 +60,7 @@ export function recordPatch<T extends object>(
 ): SingleFilterPatchReturnValue<T>;
 /**
  * Indicate that you wish to begin tracking and filtering multiple sets of changes to an object tree, to subsequently generate patches of those changes.
- * @param tree Object tree which will be proxied, to track any modifications
+ * @param tree Object tree which will be proxied, to track any modifications.
  * @param filters A map associating each filter with a unique identifier. For each of these, a separate filtered patch will be recorded.
  * @returns A proxy of the tree which should have filtered modifications applied to it, a method to trigger updating of any conditional filters, and a method to retrieve patches representing those changes, for each provided filter identifier.
  */
