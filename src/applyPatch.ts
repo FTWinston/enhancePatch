@@ -1,4 +1,11 @@
-import { ArrayPatch, MapPatch, ObjectPatch, Patch, SetPatch } from './Patch';
+import {
+    ArrayPatch,
+    MapKey,
+    MapPatch,
+    ObjectPatch,
+    Patch,
+    SetPatch,
+} from './Patch';
 import { isArray, isMap, isObject, isSet } from './typeChecks';
 import {
     ArrayOperation,
@@ -7,21 +14,20 @@ import {
 } from './ArrayOperation';
 
 function patchObject(tree: Record<string, any>, patch: ObjectPatch) {
-    if (patch.s) {
-        tree = {
-            ...tree,
-            ...patch.s,
-        };
-    }
-
     if (patch.d) {
         for (const key of patch.d) {
             delete tree[key];
         }
     }
 
+    if (patch.s) {
+        for (const [key, value] of patch.s) {
+            tree[key] = value;
+        }
+    }
+
     if (patch.c) {
-        for (const [key, childPatch] of Object.entries(patch.c)) {
+        for (const [key, childPatch] of patch.c) {
             let childTree = tree[key];
             childTree = applyPatch(childTree, childPatch);
             tree[key] = childTree;
@@ -59,7 +65,7 @@ function applyArrayOperation(tree: any[], operation: ArrayOperation) {
         default:
             const val: never = operation;
             throw new Error(
-                `Unexpected operation type: ${JSON.stringify(operation)}`
+                `Unexpected operation type: ${JSON.stringify(operation)}`,
             );
     }
 }
@@ -72,11 +78,10 @@ function patchArray(tree: any[], patch: ArrayPatch) {
     }
 
     if (patch.c) {
-        for (const [key, childPatch] of Object.entries(patch.c)) {
-            const numKey = key as unknown as number;
-            let childTree = tree[numKey];
+        for (const [key, childPatch] of patch.c) {
+            let childTree = tree[key];
             childTree = applyPatch(childTree, childPatch);
-            tree[numKey] = childTree;
+            tree[key] = childTree;
         }
     }
 
@@ -84,8 +89,8 @@ function patchArray(tree: any[], patch: ArrayPatch) {
 }
 
 function mapAndSetDelete(
-    tree: Map<any, any> | Set<any>,
-    patch: MapPatch | SetPatch
+    tree: Map<MapKey, any> | Set<MapKey>,
+    patch: MapPatch | SetPatch,
 ) {
     if (patch.d) {
         if (patch.d === true) {
@@ -98,7 +103,7 @@ function mapAndSetDelete(
     }
 }
 
-function patchMap(tree: Map<string | number, any>, patch: MapPatch) {
+function patchMap(tree: Map<MapKey, any>, patch: MapPatch) {
     mapAndSetDelete(tree, patch);
 
     if (patch.s) {
@@ -108,26 +113,17 @@ function patchMap(tree: Map<string | number, any>, patch: MapPatch) {
     }
 
     if (patch.c) {
-        for (const [key, childPatch] of Object.entries(patch.c)) {
+        for (const [key, childPatch] of patch.c) {
             let childTree = tree.get(key);
             childTree = applyPatch(childTree, childPatch);
             tree.set(key, childTree);
         }
     }
 
-    if (patch.C) {
-        for (const [key, childPatch] of Object.entries(patch.C)) {
-            let numKey = parseFloat(key);
-            let childTree = tree.get(numKey);
-            childTree = applyPatch(childTree, childPatch);
-            tree.set(numKey, childTree);
-        }
-    }
-
     return tree;
 }
 
-function patchSet(tree: Set<any>, patch: SetPatch) {
+function patchSet(tree: Set<MapKey>, patch: SetPatch) {
     mapAndSetDelete(tree, patch);
 
     if (patch.a) {
@@ -139,6 +135,12 @@ function patchSet(tree: Set<any>, patch: SetPatch) {
     return tree;
 }
 
+/**
+ * Apply a patch to a known object tree, returning a new object tree that is the result of doing this.
+ * @param tree object tree to which the patch should be applied
+ * @param patch patch to apply to the tree
+ * @returns A new object tree that is the result of applying the patch
+ */
 export function applyPatch<T extends object>(tree: T, patch: Patch): T {
     if (isArray(tree)) {
         const array = tree.slice();

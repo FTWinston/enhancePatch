@@ -51,7 +51,7 @@ export class ProxyManager<TRoot extends object> {
             tree,
             rootFilters,
             undefined,
-            () => {}
+            () => {},
         );
     }
 
@@ -73,7 +73,7 @@ export class ProxyManager<TRoot extends object> {
 
     private getFilterField(
         filter: Filter,
-        field: FilterKey
+        field: FilterKey,
     ): ConditionalFilter | undefined {
         const specificFilter = filter.fixedKeys?.[field];
 
@@ -88,7 +88,7 @@ export class ProxyManager<TRoot extends object> {
 
     private shouldIncludeChild(
         filter: ConditionalFilter | undefined,
-        field: FilterKey
+        field: FilterKey,
     ): boolean {
         if (filter === undefined) {
             return true;
@@ -107,7 +107,7 @@ export class ProxyManager<TRoot extends object> {
 
     private getChildFilters(
         filters: Map<FilterIdentifer, ConditionalFilter>,
-        field: FilterKey
+        field: FilterKey,
     ): Map<FilterIdentifer, ConditionalFilter | true> {
         const results = new Map<FilterIdentifer, ConditionalFilter | true>();
 
@@ -125,7 +125,7 @@ export class ProxyManager<TRoot extends object> {
     }
 
     private createObjectHandler(
-        info: PatchProxyInfo<ObjectPatch>
+        info: PatchProxyInfo<ObjectPatch>,
     ): ProxyHandler<object> {
         return {
             get: (target, field) => {
@@ -151,11 +151,17 @@ export class ProxyManager<TRoot extends object> {
                                     continue;
                                 }
 
-                                if (patch.c === undefined) {
-                                    patch.c = {};
+                                const childPatch =
+                                    childInfo.patches.get(filterIdentifier);
+                                if (childPatch === undefined) {
+                                    continue;
                                 }
-                                patch.c[field] =
-                                    childInfo.patches.get(filterIdentifier)!;
+
+                                if (patch.c === undefined) {
+                                    patch.c = new Map();
+                                }
+
+                                patch.c.set(field, childPatch);
                             }
 
                             if (info.addToOutput) {
@@ -168,7 +174,7 @@ export class ProxyManager<TRoot extends object> {
                             val,
                             this.getChildFilters(info.filters, field),
                             info,
-                            addChildToOutput
+                            addChildToOutput,
                         );
 
                         return childInfo.proxy;
@@ -191,16 +197,12 @@ export class ProxyManager<TRoot extends object> {
                         }
 
                         if (patch.s === undefined) {
-                            patch.s = {};
+                            patch.s = new Map();
                         }
-                        patch.s[field] = val;
 
-                        if (patch.d !== undefined) {
-                            const removeAt = patch.d.indexOf(field);
-                            if (removeAt !== -1) {
-                                patch.d.splice(removeAt, 1);
-                            }
-                        }
+                        patch.s.set(field, val);
+
+                        patch.d?.delete(field);
                     }
 
                     info.newlyAddedChildren.add(val);
@@ -228,13 +230,12 @@ export class ProxyManager<TRoot extends object> {
                         }
 
                         if (patch.d === undefined) {
-                            patch.d = [];
+                            patch.d = new Set();
                         }
-                        patch.d.push(field);
 
-                        if (patch.s !== undefined) {
-                            delete patch.s[field];
-                        }
+                        patch.d.add(field);
+
+                        patch.s?.delete(field);
                     }
 
                     this.removeProxy(val);
@@ -267,7 +268,7 @@ export class ProxyManager<TRoot extends object> {
 
     private adjustArrayChildIndexes(
         info: ArrayPatchProxyInfo,
-        getNewIndex: (index: number) => number | null
+        getNewIndex: (index: number) => number | null,
     ) {
         for (const [child, index] of info.uncreatedChildPatchIndexes) {
             const newIndex = getNewIndex(index);
@@ -286,14 +287,14 @@ export class ProxyManager<TRoot extends object> {
                 return;
             }
 
-            const newChildren: Record<number, Patch> = {};
+            const newChildren = new Map<number, Patch>();
 
             for (const [strIndex, value] of Object.entries(children)) {
                 const index = parseInt(strIndex);
                 const newIndex = getNewIndex(index);
 
                 if (newIndex !== null) {
-                    newChildren[newIndex] = value;
+                    newChildren.set(newIndex, value);
                 }
             }
 
@@ -321,7 +322,7 @@ export class ProxyManager<TRoot extends object> {
 
                         // Update child patch indexes
                         this.adjustArrayChildIndexes(info, (i) =>
-                            i < start ? i : i + shift
+                            i < start ? i : i + shift,
                         );
 
                         this.addArrayOp(info, {
@@ -341,7 +342,7 @@ export class ProxyManager<TRoot extends object> {
 
                         // Decrease all child indexes by 1
                         this.adjustArrayChildIndexes(info, (i) =>
-                            i > 0 ? i - 1 : null
+                            i > 0 ? i - 1 : null,
                         );
 
                         const shifted = target.shift();
@@ -360,7 +361,7 @@ export class ProxyManager<TRoot extends object> {
                         // update child patch indices... increase them all by items.length
                         this.adjustArrayChildIndexes(
                             info,
-                            (i) => i + items.length
+                            (i) => i + items.length,
                         );
 
                         return target.unshift(...items);
@@ -375,7 +376,7 @@ export class ProxyManager<TRoot extends object> {
                         const length = (info.underlying as any[]).length;
                         this.adjustArrayChildIndexes(
                             info,
-                            (i) => length - i - 1
+                            (i) => length - i - 1,
                         );
 
                         return target.reverse();
@@ -395,7 +396,7 @@ export class ProxyManager<TRoot extends object> {
                         // Save this index where it can be modified if the array is altered.
                         info.uncreatedChildPatchIndexes.set(
                             val,
-                            parseInt(field)
+                            parseInt(field),
                         );
 
                         const addChildToOutput = () => {
@@ -411,7 +412,7 @@ export class ProxyManager<TRoot extends object> {
                                 }
 
                                 if (patch.c === undefined) {
-                                    patch.c = {};
+                                    patch.c = new Map();
                                 }
                             }
 
@@ -431,10 +432,14 @@ export class ProxyManager<TRoot extends object> {
                                         continue;
                                     }
 
-                                    patch.c![index] =
-                                        childInfo.patches.get(
-                                            filterIdentifier
-                                        )!;
+                                    const childPatch =
+                                        childInfo.patches.get(filterIdentifier);
+
+                                    if (childPatch === undefined) {
+                                        continue;
+                                    }
+
+                                    patch.c!.set(index, childPatch);
                                 }
 
                                 if (info.addToOutput) {
@@ -448,7 +453,7 @@ export class ProxyManager<TRoot extends object> {
                             val,
                             this.getChildFilters(info.filters, field),
                             info,
-                            addChildToOutput
+                            addChildToOutput,
                         );
 
                         return childInfo.proxy;
@@ -513,7 +518,7 @@ export class ProxyManager<TRoot extends object> {
     }
 
     private createMapHandler(
-        info: PatchProxyInfo<MapPatch>
+        info: PatchProxyInfo<MapPatch>,
     ): ProxyHandler<Map<any, any>> {
         return {
             get: (target, field) => {
@@ -531,78 +536,49 @@ export class ProxyManager<TRoot extends object> {
                             }
 
                             if (this.canProxy(info, val)) {
-                                const addChildToOutput =
-                                    typeof key === 'string'
-                                        ? () => {
-                                              for (const [
-                                                  filterIdentifier,
-                                                  patch,
-                                              ] of info.patches) {
-                                                  const filter =
-                                                      info.filters.get(
-                                                          filterIdentifier
-                                                      );
+                                const addChildToOutput = () => {
+                                    for (const [
+                                        filterIdentifier,
+                                        patch,
+                                    ] of info.patches) {
+                                        const filter =
+                                            info.filters.get(filterIdentifier);
 
-                                                  if (
-                                                      !this.shouldIncludeChild(
-                                                          filter,
-                                                          key
-                                                      )
-                                                  ) {
-                                                      continue;
-                                                  }
+                                        if (
+                                            !this.shouldIncludeChild(
+                                                filter,
+                                                key,
+                                            )
+                                        ) {
+                                            continue;
+                                        }
 
-                                                  if (patch.c === undefined) {
-                                                      patch.c = {};
-                                                  }
-                                                  patch.c[key] =
-                                                      childInfo.patches.get(
-                                                          filterIdentifier
-                                                      )!;
-                                              }
-                                              if (info.addToOutput) {
-                                                  info.addToOutput();
-                                                  delete info.addToOutput;
-                                              }
-                                          }
-                                        : () => {
-                                              for (const [
-                                                  filterIdentifier,
-                                                  patch,
-                                              ] of info.patches) {
-                                                  const filter =
-                                                      info.filters.get(
-                                                          filterIdentifier
-                                                      );
+                                        const childPatch =
+                                            childInfo.patches.get(
+                                                filterIdentifier,
+                                            );
 
-                                                  if (
-                                                      !this.shouldIncludeChild(
-                                                          filter,
-                                                          key
-                                                      )
-                                                  ) {
-                                                      continue;
-                                                  }
+                                        if (childPatch === undefined) {
+                                            continue;
+                                        }
 
-                                                  if (patch.C === undefined) {
-                                                      patch.C = {};
-                                                  }
-                                                  patch.C[key] =
-                                                      childInfo.patches.get(
-                                                          filterIdentifier
-                                                      )!;
-                                              }
-                                              if (info.addToOutput) {
-                                                  info.addToOutput();
-                                                  delete info.addToOutput;
-                                              }
-                                          };
+                                        if (patch.c === undefined) {
+                                            patch.c = new Map();
+                                        }
+
+                                        patch.c.set(key, childPatch);
+                                    }
+                                    if (info.addToOutput) {
+                                        info.addToOutput();
+                                        delete info.addToOutput;
+                                    }
+                                };
 
                                 const childInfo = this.createProxy(
                                     val,
                                     this.getChildFilters(info.filters, field),
                                     info,
-                                    addChildToOutput
+                                    addChildToOutput,
                                 );
 
                                 return childInfo.proxy;
@@ -630,15 +606,13 @@ export class ProxyManager<TRoot extends object> {
                                 }
 
                                 if (patch.s === undefined) {
-                                    patch.s = [];
+                                    patch.s = new Map();
                                 }
-                                patch.s.push([key, val]);
 
-                                if (isArray(patch.d)) {
-                                    const removeAt = patch.d.indexOf(key);
-                                    if (removeAt !== -1) {
-                                        patch.d.splice(removeAt, 1);
-                                    }
+                                patch.s.set(key, val);
+
+                                if (isSet(patch.d)) {
+                                    patch.d.delete(key);
                                 }
                             }
 
@@ -673,18 +647,14 @@ export class ProxyManager<TRoot extends object> {
 
                                 if (patch.d !== true) {
                                     if (patch.d === undefined) {
-                                        patch.d = [];
+                                        patch.d = new Set();
                                     }
-                                    patch.d.push(key);
+
+                                    patch.d.add(key);
                                 }
 
                                 if (patch.s !== undefined) {
-                                    const removeAt = patch.s.findIndex(
-                                        (el) => el[0] === key
-                                    );
-                                    if (removeAt !== -1) {
-                                        patch.s.splice(removeAt, 1);
-                                    }
+                                    patch.s.delete(key);
                                 }
                             }
 
@@ -731,9 +701,8 @@ export class ProxyManager<TRoot extends object> {
     }
 
     private createSetHandler(
-        info: PatchProxyInfo<SetPatch>
+        info: PatchProxyInfo<SetPatch>,
     ): ProxyHandler<Set<any>> {
-        // For patch purposes treat Sets like Maps, use the values as keys and always use "1" as the pretend value.
         return {
             get: (target, field) => {
                 let func;
@@ -745,15 +714,12 @@ export class ProxyManager<TRoot extends object> {
                         if (this.isAllowedMapKey(val)) {
                             for (const patch of info.patches.values()) {
                                 if (patch.a === undefined) {
-                                    patch.a = [];
+                                    patch.a = new Set();
                                 }
-                                patch.a.push(val);
+                                patch.a.add(val);
 
-                                if (isArray(patch.d)) {
-                                    const removeAt = patch.d.indexOf(val);
-                                    if (removeAt !== -1) {
-                                        patch.d.splice(removeAt, 1);
-                                    }
+                                if (isSet(patch.d)) {
+                                    patch.d.delete(val);
                                 }
                             }
 
@@ -773,16 +739,13 @@ export class ProxyManager<TRoot extends object> {
                             for (const patch of info.patches.values()) {
                                 if (patch.d !== true) {
                                     if (patch.d === undefined) {
-                                        patch.d = [];
+                                        patch.d = new Set();
                                     }
-                                    patch.d.push(val);
+                                    patch.d.add(val);
                                 }
 
                                 if (patch.a !== undefined) {
-                                    const removeAt = patch.a.indexOf(val);
-                                    if (removeAt !== -1) {
-                                        patch.a.splice(removeAt, 1);
-                                    }
+                                    patch.a.delete(val);
                                 }
                             }
 
@@ -827,7 +790,7 @@ export class ProxyManager<TRoot extends object> {
         underlying: T,
         filters: Map<FilterIdentifer, ConditionalFilter>,
         parent?: ProxyInfo,
-        addToOutput?: () => void
+        addToOutput?: () => void,
     ): TypedProxyInfo<T> {
         const info: TypedProxyInfo<T> = {
             parent,
@@ -855,7 +818,7 @@ export class ProxyManager<TRoot extends object> {
             handler = this.createSetHandler(info as PatchProxyInfo<SetPatch>);
         } else {
             handler = this.createObjectHandler(
-                info as PatchProxyInfo<ObjectPatch>
+                info as PatchProxyInfo<ObjectPatch>,
             );
         }
 

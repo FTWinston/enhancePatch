@@ -1,5 +1,5 @@
 import { applyPatch } from './applyPatch';
-import { Patch } from './Patch';
+import { MapKey, Patch } from './Patch';
 
 test('objects', () => {
     const tree = {
@@ -14,20 +14,29 @@ test('objects', () => {
     };
 
     const patch: Patch = {
-        s: { a: 1, b: '2' },
-        d: ['x'],
-        c: {
-            child: {
-                s: { c: '3' },
-                d: ['y'],
-                c: {
-                    grandchild: {
-                        s: { greatgrandchild: { d: 4 } },
-                        d: ['z'],
-                    },
+        s: new Map<string, any>([
+            ['a', 1],
+            ['b', '2'],
+        ]),
+        d: new Set(['x']),
+        c: new Map<string, Patch>([
+            [
+                'child',
+                {
+                    s: new Map([['c', '3']]),
+                    d: new Set(['y']),
+                    c: new Map<MapKey, Patch>([
+                        [
+                            'grandchild',
+                            {
+                                s: new Map([['greatgrandchild', { d: 4 }]]),
+                                d: new Set(['z']),
+                            },
+                        ],
+                    ]),
                 },
-            },
-        },
+            ],
+        ]),
     };
 
     const newTree = applyPatch(tree, patch);
@@ -52,33 +61,39 @@ test('new maps and sets', () => {
     const tree = {};
 
     const patch: Patch = {
-        s: {
-            a: new Map<any, any>([
-                ['x', 1],
-                ['y', 2],
-                ['z', '3'],
-            ]),
-            b: new Set([1, 2, 4, 8]),
-            c: new Map<string | number, any>([
-                [
-                    'd',
-                    {
-                        x: '1',
-                        y: '2',
-                        z: 3,
-                    },
-                ],
-                [
-                    1,
-                    new Map<string, any>([
-                        ['x', 1],
-                        ['y', 2],
-                        ['z', '3'],
-                    ]),
-                ],
-                ['e', new Set(['x', 'y', 'z'])],
-            ]),
-        },
+        s: new Map<MapKey, any>([
+            [
+                'a',
+                new Map<any, any>([
+                    ['x', 1],
+                    ['y', 2],
+                    ['z', '3'],
+                ]),
+            ],
+            ['b', new Set([1, 2, 4, 8])],
+            [
+                'c',
+                new Map<string | number, any>([
+                    [
+                        'd',
+                        {
+                            x: '1',
+                            y: '2',
+                            z: 3,
+                        },
+                    ],
+                    [
+                        1,
+                        new Map<string, any>([
+                            ['x', 1],
+                            ['y', 2],
+                            ['z', '3'],
+                        ]),
+                    ],
+                    ['e', new Set(['x', 'y', 'z'])],
+                ]),
+            ],
+        ]),
     };
 
     const newTree = applyPatch(tree, patch);
@@ -166,51 +181,70 @@ test('existing map', () => {
     };
 
     const patch: Patch = {
-        c: {
-            a: {
-                s: [
-                    ['d', 4],
-                    [4, 'D'],
-                ],
-                d: ['a', 'b', 2, 3],
-            },
-            b: {
-                s: [
-                    ['d', 4],
-                    [4, 'D'],
-                ],
-            },
-            c: {
-                d: ['a', 'b', 2, 3],
-            },
-            d: {
-                s: [
-                    ['d', 4],
-                    [4, 'D'],
-                ],
-                d: true,
-            },
-            e: {
-                c: {
-                    x: {
-                        s: [
-                            ['d', 4],
-                            [4, 'D'],
-                        ],
-                        d: ['a', 'b', 2, 3],
-                    },
+        c: new Map<MapKey, Patch>([
+            [
+                'a',
+                {
+                    s: new Map<MapKey, any>([
+                        ['d', 4],
+                        [4, 'D'],
+                    ]),
+                    d: new Set(['a', 'b', 2, 3]),
                 },
-                C: {
-                    9: {
-                        s: [
-                            ['d', 4],
-                            [4, 'D'],
-                        ],
-                        d: ['a', 'b', 2, 3],
-                    },
+            ],
+            [
+                'b',
+                {
+                    s: new Map<MapKey, any>([
+                        ['d', 4],
+                        [4, 'D'],
+                    ]),
                 },
-            },
-        },
+            ],
+            [
+                'c',
+                {
+                    d: new Set(['a', 'b', 2, 3]),
+                },
+            ],
+            [
+                'd',
+                {
+                    s: new Map<MapKey, any>([
+                        ['d', 4],
+                        [4, 'D'],
+                    ]),
+                    d: true,
+                },
+            ],
+            [
+                'e',
+                {
+                    c: new Map<MapKey, Patch>([
+                        [
+                            'x',
+                            {
+                                s: new Map<MapKey, any>([
+                                    ['d', 4],
+                                    [4, 'D'],
+                                ]),
+                                d: new Set(['a', 'b', 2, 3]),
+                            },
+                        ],
+                        [
+                            9,
+                            {
+                                s: new Map<MapKey, any>([
+                                    ['d', 4],
+                                    [4, 'D'],
+                                ]),
+                                d: new Set(['a', 'b', 2, 3]),
+                            },
+                        ],
+                    ]),
+                },
+            ],
+        ]),
     };
 
     const newTree = applyPatch(tree, patch);
@@ -270,16 +304,22 @@ test('existing set', () => {
     };
 
     const patch: Patch = {
-        c: {
-            a: {
-                a: ['a', 4, 5],
-                d: [2, 3],
-            },
-            b: {
-                a: ['a', 4, 5],
-                d: true,
-            },
-        },
+        c: new Map<MapKey, Patch>([
+            [
+                'a',
+                {
+                    a: new Set(['a', 4, 5]),
+                    d: new Set([2, 3]),
+                },
+            ],
+            [
+                'b',
+                {
+                    a: new Set(['a', 4, 5]),
+                    d: true,
+                },
+            ],
+        ]),
     };
 
     const newTree = applyPatch(tree, patch);
@@ -296,16 +336,15 @@ test('dates', () => {
     };
 
     const patch: Patch = {
-        s: {
-            a: new Date(2020, 11, 31),
-        },
-        c: {
-            child: {
-                s: {
-                    b: new Date(2021, 0, 0, 12, 0, 0),
+        s: new Map<string, any>([['a', new Date(2020, 11, 31)]]),
+        c: new Map<string, Patch>([
+            [
+                'child',
+                {
+                    s: new Map([['b', new Date(2021, 0, 0, 12, 0, 0)]]),
                 },
-            },
-        },
+            ],
+        ]),
     };
 
     const newTree = applyPatch(tree, patch);
