@@ -1,4 +1,4 @@
-import { ConditionalFilter, Filter } from './Filter';
+import { Filter } from './Filter';
 import { applyPatch } from './applyPatch';
 import { recordPatch } from './recordPatch';
 
@@ -6,7 +6,9 @@ test('empty filter', () => {
     const tree1: Record<string, number> = { x: 1, y: 2 };
     const tree2: Record<string, number> = { x: 1 };
 
-    const filter: Filter = {};
+    const filter: Filter = {
+        fixedKeys: {}
+    };
 
     const { getPatch } = recordPatch(tree1, filter);
 
@@ -27,7 +29,7 @@ describe('modify root, include true, single fixed key', () => {
 
         const filter: Filter = {
             fixedKeys: {
-                x: {}
+                x: true
             }
         };
 
@@ -52,7 +54,7 @@ describe('modify root, include true, single fixed key', () => {
 
         const filter: Filter = {
             fixedKeys: {
-                x: {}
+                x: true
             }
         };
 
@@ -76,7 +78,7 @@ describe('modify root, include true, single fixed key', () => {
 
         const filter: Filter = {
             fixedKeys: {
-                x: {}
+                x: true
             }
         };
 
@@ -100,7 +102,7 @@ describe('modify root, include true, single fixed key', () => {
 
         const filter: Filter = {
             fixedKeys: {
-                x: {}
+                x: true
             }
         };
 
@@ -122,7 +124,7 @@ describe('modify root, include true, single fixed key', () => {
 
         const filter: Filter = {
             fixedKeys: {
-                x: {}
+                x: true
             }
         };
 
@@ -162,7 +164,7 @@ describe('modify root, include true, single fixed key', () => {
 
         const filter: Filter = {
             fixedKeys: {
-                x: {}
+                x: true
             }
         };
 
@@ -189,7 +191,7 @@ describe('modify root, include true, single fixed key', () => {
 
         const filter: Filter = {
             fixedKeys: {
-                x: {}
+                x: true
             }
         };
 
@@ -217,7 +219,7 @@ describe('modify root, include true, single fixed key', () => {
 
         const filter: Filter = {
             fixedKeys: {
-                x: {}
+                x: true
             }
         };
 
@@ -242,7 +244,3 @@ describe('modify root, include true, single fixed key', () => {
 
 // TODO: modify child tests
 
-
-const exampleFilter: Filter = {
-    
-}

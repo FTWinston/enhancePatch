@@ -4,9 +4,14 @@ type Conditional = {
     include?: (key: FilterKey) => boolean;
 };
 
-export type Filter = {
-    fixedKeys?: Partial<Record<FilterKey, ConditionalFilter | true>>;
-    otherKeys?: ConditionalFilter;
+type FixedFieldFilter = {
+    fixedKeys: Partial<Record<FilterKey, ConditionalFilter | true>>;
 };
+
+type AnyFieldFilter = {
+    otherKeys: ConditionalFilter | true;
+}
+
+export type Filter = FixedFieldFilter | AnyFieldFilter
 
 export type ConditionalFilter = Filter & Conditional;

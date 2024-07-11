@@ -78,7 +78,9 @@ export class ProxyManager<TRoot extends object> {
         const specificFilter = filter.fixedKeys?.[field];
 
         if (specificFilter === true) {
-            return {};
+            return ({
+                otherKeys: true,
+            });
         }
 
         return specificFilter ?? filter.otherKeys;
@@ -88,11 +90,7 @@ export class ProxyManager<TRoot extends object> {
         filter: ConditionalFilter | undefined,
         field: FilterKey
     ): boolean {
-        // TODO: this extra check is silly.
-        if (
-            filter === undefined ||
-            (filter.fixedKeys === undefined && filter.otherKeys === undefined)
-        ) {
+        if (filter === undefined) {
             return true;
         }
 
@@ -110,15 +108,13 @@ export class ProxyManager<TRoot extends object> {
     private getChildFilters(
         filters: Map<FilterIdentifer, ConditionalFilter>,
         field: FilterKey
-    ): Map<FilterIdentifer, ConditionalFilter> {
-        const results = new Map<FilterIdentifer, ConditionalFilter>();
+    ): Map<FilterIdentifer, ConditionalFilter | true> {
+        const results = new Map<FilterIdentifer, ConditionalFilter | true>();
 
         for (const [identifier, filter] of filters) {
-            // TODO: this extra check is silly.
-            const fieldFilter =
-                filter.fixedKeys !== undefined || filter.otherKeys !== undefined
+            const fieldFilter = filter !== undefined
                     ? this.getFilterField(filter, field)
-                    : {};
+                    : true;
 
             if (fieldFilter) {
                 results.set(identifier, fieldFilter);
