@@ -42,6 +42,11 @@ type MultiFilterReturnValue<T> = {
 /** Identifier for a unique filter, when multiple filters are being recorded simultaneously */
 type SpecifiedFilterIdentifier = Exclude<FilterIdentifer, null>;
 
+const NoFilter = 1;
+const SingleFilter = 2;
+const MultipleFilters = 3;
+type FilterMode = typeof NoFilter | typeof SingleFilter | typeof MultipleFilters;
+
 /**
  * Indicate that you wish to begin tracking all changes to an object tree, to subsequently generate a patch of those changes.
  * @param tree Object tree which will be proxied, to track any modifications.
@@ -75,26 +80,26 @@ export function recordPatch<T extends object>(
     | PatchReturnValue<T>
     | SingleFilterPatchReturnValue<T>
     | MultiFilterReturnValue<T> {
-    let mode: 1 | 2 | 3;
+    let mode: FilterMode;
 
     let filters: Map<FilterIdentifer, Filter>;
     if (filter === undefined) {
-        mode = 1;
+        mode = NoFilter;
         filters = new Map<FilterIdentifer, Filter>();
         filters.set(null, { otherKeys: { include: true } });
     } else if (!(filter instanceof Map)) {
-        mode = 2;
+        mode = SingleFilter;
         const onlyFilter = filter;
         filters = new Map<FilterIdentifer, Filter>();
         filters.set(null, onlyFilter);
     } else {
-        mode = 3;
+        mode = MultipleFilters;
         filters = filter as Map<FilterIdentifer, Filter>;
     }
 
     const manager = new ProxyManager(tree, filters);
 
-    if (mode === 1) {
+    if (mode === NoFilter) {
         // No filter, return PatchReturnValue<T>
         return {
             proxy: manager.rootProxy,
@@ -103,7 +108,7 @@ export function recordPatch<T extends object>(
                 return patches.get(null) ?? {};
             },
         };
-    } else if (mode === 2) {
+    } else if (mode === SingleFilter) {
         // Single filter, return SingleFilterPatchReturnValue<T>
         return {
             proxy: manager.rootProxy,
