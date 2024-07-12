@@ -10,7 +10,7 @@ import { isArray, isMap, isObject, isSet } from './typeChecks';
 import {
     ArrayOperation,
     ArrayOperationType,
-    ArraySpliceOperation2,
+    ArraySpliceOperation,
 } from './ArrayOperation';
 
 function patchObject(tree: Record<string, any>, patch: ObjectPatch) {
@@ -46,9 +46,8 @@ function applyArrayOperation(tree: any[], operation: ArrayOperation) {
             tree.splice(operation.i, 1);
             break;
         case ArrayOperationType.Splice:
-            if ((operation as any).n) {
-                const op = operation as ArraySpliceOperation2;
-                tree.splice(op.i, op.d, ...op.n);
+            if (operation.n !== undefined) {
+                tree.splice(operation.i, operation.d, ...operation.n);
             } else {
                 tree.splice(operation.i, operation.d);
             }
