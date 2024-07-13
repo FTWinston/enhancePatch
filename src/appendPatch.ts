@@ -1,6 +1,8 @@
 import { applyPatch } from './applyPatch';
-import { MapKey, Patch } from './Patch';
+import { getArrayChildIndexAdjustment } from './getArrayChildIndexAdjustment';
+import { ArrayPatch, MapKey, Patch } from './Patch';
 import { isSet } from './typeChecks';
+import { updateArrayPatchChildIndexes } from './updateArrayPatchChildIndexes';
 
 function deleteMultiple<TKey>(deleteFrom: Map<TKey, unknown> | Set<TKey>, toDelete: Set<TKey> | IterableIterator<TKey>) {
     for (const key of toDelete) {
@@ -96,13 +98,18 @@ export function appendPatch(target: Patch, addition: Patch) {
             target.o = [...target.o, ...addition.o];
         }
         else {
-            (target as any).o = addition.o;
+            (target as ArrayPatch).o = addition.o;
         }
 
         if ('c' in target && target.c !== undefined) {
-            // TODO: for each operation in addition.o, determine how it would update array indexes, and then apply that to target.c keys.
-            // Should this be in forward or reverse order!? Forward!
-            // This feels like it's duplicating the work already in createArrayHandler. Can that be refactored? i.e. just pulling the calls to adjustArrayChildIndexes out of that.
+            // For each operation in addition.o, determine how it would update array indexes, and then apply that to target.c keys.
+            // We do this because addition.o operations will be processed before target.c, which previously didn't account for them.
+            for (const operation of addition.o) {
+                const getNewIndex = getArrayChildIndexAdjustment(operation);
+                if (getNewIndex !== null) {
+                    updateArrayPatchChildIndexes(target as ArrayPatch, getNewIndex);
+                }
+            }
         }
     }
 

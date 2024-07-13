@@ -65,4 +65,6 @@ export interface ArrayUnshiftOperation {
 export interface ArrayReverseOperation {
     /** array operation type */
     o: typeof ArrayOperationType.Reverse;
+    /** length of underlying array */
+    l: number;
 }

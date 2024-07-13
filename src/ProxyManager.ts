@@ -5,8 +5,10 @@ import {
     FilterKey,
     unfilteredFilter,
 } from './Filter';
+import { getArrayChildIndexAdjustment } from './getArrayChildIndexAdjustment';
 import { ArrayPatch, MapPatch, ObjectPatch, Patch, SetPatch } from './Patch';
 import { isArray, isMap, isSet } from './typeChecks';
+import { updateArrayPatchChildIndexes } from './updateArrayPatchChildIndexes';
 
 export type FilterIdentifer = string | number | null;
 
@@ -271,10 +273,12 @@ export class ProxyManager<TRoot extends object> {
 
     private adjustArrayChildIndexes(
         info: ArrayPatchProxyInfo,
-        getNewIndex: (index: number) => number | null,
+        operation: ArrayOperation,
     ) {
+        const getNewIndex = getArrayChildIndexAdjustment(operation);
+
         for (const [child, index] of info.uncreatedChildPatchIndexes) {
-            const newIndex = getNewIndex(index);
+            const newIndex = getNewIndex?.(index) ?? null;
 
             if (newIndex !== null) {
                 info.uncreatedChildPatchIndexes.set(child, newIndex);
@@ -283,24 +287,10 @@ export class ProxyManager<TRoot extends object> {
             info.uncreatedChildPatchIndexes.delete(child);
         }
 
-        for (const patch of info.patches.values()) {
-            const children = patch.c;
-
-            if (children === undefined) {
-                return;
+        if (getNewIndex !== null) {
+            for (const patch of info.patches.values()) {
+                updateArrayPatchChildIndexes(patch, getNewIndex);
             }
-
-            const newChildren = new Map<number, Patch>();
-
-            for (const [index, value] of children.entries()) {
-                const newIndex = getNewIndex(index);
-
-                if (newIndex !== null) {
-                    newChildren.set(newIndex, value);
-                }
-            }
-
-            patch.c = newChildren;
         }
     }
 
@@ -319,33 +309,29 @@ export class ProxyManager<TRoot extends object> {
                             const removing = target[i];
                             this.removeProxy(removing);
                         }
-
-                        const shift = items.length - deleteCount;
-
-                        // Update child patch indexes
-                        this.adjustArrayChildIndexes(info, (i) =>
-                            i < start ? i : i + shift,
-                        );
-
-                        this.addArrayOp(info, {
+                        
+                        const operation: ArrayOperation = {
                             o: ArrayOperationType.Splice,
                             i: start,
                             d: deleteCount,
                             n: items,
-                        });
+                        };
+
+                        this.adjustArrayChildIndexes(info, operation);
+
+                        this.addArrayOp(info, operation);
 
                         return target.splice(start, deleteCount, ...items);
                     };
                 } else if (field === 'shift') {
                     return () => {
-                        this.addArrayOp(info, {
+                        const operation: ArrayOperation = {
                             o: ArrayOperationType.Shift,
-                        });
+                        }
 
-                        // Decrease all child indexes by 1
-                        this.adjustArrayChildIndexes(info, (i) =>
-                            i > 0 ? i - 1 : null,
-                        );
+                        this.addArrayOp(info, operation);
+
+                        this.adjustArrayChildIndexes(info, operation);
 
                         const shifted = target.shift();
 
@@ -355,31 +341,28 @@ export class ProxyManager<TRoot extends object> {
                     };
                 } else if (field === 'unshift') {
                     return (...items: any[]) => {
-                        this.addArrayOp(info, {
+                        const operation: ArrayOperation = {
                             o: ArrayOperationType.Unshift,
                             n: items,
-                        });
+                        };
 
-                        // update child patch indices... increase them all by items.length
-                        this.adjustArrayChildIndexes(
-                            info,
-                            (i) => i + items.length,
-                        );
+                        this.addArrayOp(info, operation);
+
+                        // update child patch indices... i
+                        this.adjustArrayChildIndexes(info, operation);
 
                         return target.unshift(...items);
                     };
                 } else if (field === 'reverse') {
                     return () => {
-                        this.addArrayOp(info, {
+                        const operation: ArrayOperation = {
                             o: ArrayOperationType.Reverse,
-                        });
+                            l: (info.underlying as any[]).length
+                        };
 
-                        // update child patch indexes ... reverse them all
-                        const length = (info.underlying as any[]).length;
-                        this.adjustArrayChildIndexes(
-                            info,
-                            (i) => length - i - 1,
-                        );
+                        this.addArrayOp(info, operation);
+                        
+                        this.adjustArrayChildIndexes(info, operation);
 
                         return target.reverse();
                     };
