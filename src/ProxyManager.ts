@@ -292,8 +292,7 @@ export class ProxyManager<TRoot extends object> {
 
             const newChildren = new Map<number, Patch>();
 
-            for (const [strIndex, value] of Object.entries(children)) {
-                const index = parseInt(strIndex);
+            for (const [index, value] of children.entries()) {
                 const newIndex = getNewIndex(index);
 
                 if (newIndex !== null) {
