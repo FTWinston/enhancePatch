@@ -26,6 +26,7 @@ function addMultipleToMap<TKey, TValue>(addTo: Map<TKey, TValue>, toAdd: Map<TKe
  * @param addition The newer patch, which will be merged into the target.
  */
 export function appendPatch(target: Patch, addition: Patch) {
+    // Add deletions, and potentially remove existing settings or child patches.
     if ('d' in addition && addition.d !== undefined) {
         if (isSet(addition.d)) {
             // Add to target.d, and remove corresponding entries from target.s and target.c
@@ -60,6 +61,7 @@ export function appendPatch(target: Patch, addition: Patch) {
         }
     }
 
+    // Add settings, and potentially remove existing deletions or child patches.
     if ('s' in addition && addition.s !== undefined) {
         // Add to target.s, and remove corresponding entries from target.d and target.c
         if ('s' in target && target.s !== undefined) {
@@ -88,6 +90,23 @@ export function appendPatch(target: Patch, addition: Patch) {
         }
     }
 
+    // Add array operations, potentially updating existing child patches, as their indexes must be changed.
+    if ('o' in addition && addition.o !== undefined) {
+        if ('o' in target && target.o !== undefined) {
+            target.o = [...target.o, ...addition.o];
+        }
+        else {
+            (target as any).o = addition.o;
+        }
+
+        if ('c' in target && target.c !== undefined) {
+            // TODO: for each operation in addition.o, determine how it would update array indexes, and then apply that to target.c keys.
+            // Should this be in forward or reverse order!? Forward!
+            // This feels like it's duplicating the work already in createArrayHandler. Can that be refactored? i.e. just pulling the calls to adjustArrayChildIndexes out of that.
+        }
+    }
+
+    // Add child patches, potentially updating corresponding existing child patches.
     if ('c' in addition && addition.c !== undefined) {
         // Add to target.c, unless we should instead update an existing entry in target.c or target.s
         const targetC = 'c' in target && target.c !== undefined
@@ -120,6 +139,4 @@ export function appendPatch(target: Patch, addition: Patch) {
             (target as any).c = targetC;
         }
     }
-
-    // TODO: arrayPatch o and c stuff ... this feels like reinventing the wheel.
 }
