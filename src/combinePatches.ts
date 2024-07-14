@@ -23,11 +23,17 @@ function addMultipleToMap<TKey, TValue>(addTo: Map<TKey, TValue>, toAdd: Map<TKe
 }
 
 /**
- * Merge a newer patch into an older one, updating it so that it contains all changes from both patches.
+ * Merge newer patch(es) into an older one, updating it so that it contains all changes from all patches.
  * @param target The older patch, which will be updated with the addition.
- * @param addition The newer patch, which will be merged into the target.
+ * @param additions The newer patch(es), which will be merged into the target, in order.
  */
-export function appendPatch(target: Patch, addition: Patch) {
+export function combinePatches(target: Patch, ...additions: Patch[]) {
+    for (const addition of additions) {
+        appendPatch(target, addition);
+    }
+}
+
+function appendPatch(target: Patch, addition: Patch) {
     // Add deletions, and potentially remove existing settings or child patches.
     if ('d' in addition && addition.d !== undefined) {
         if (isSet(addition.d)) {
@@ -125,7 +131,7 @@ export function appendPatch(target: Patch, addition: Patch) {
 
             if (targetPatchValue !== undefined) {
                 // Target already has a patch for this child, so combine the two patches.
-                appendPatch(targetPatchValue, childPatch);
+                combinePatches(targetPatchValue, childPatch);
                 continue;
             }
             else if ('s' in target && target.s !== undefined) {

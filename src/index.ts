@@ -1,4 +1,4 @@
 export { Patch, ObjectPatch, ArrayPatch, MapPatch, SetPatch } from './Patch';
-export { appendPatch } from './appendPatch';
+export { combinePatches } from './combinePatches';
 export { applyPatch } from './applyPatch';
 export { recordPatch } from './recordPatch';
