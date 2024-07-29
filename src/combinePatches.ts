@@ -1,13 +1,15 @@
 import { applyPatch } from './applyPatch';
-import { getArrayChildIndexAdjustment } from './getArrayChildIndexAdjustment';
+import {
+    getArrayChildIndexAdjustment,
+    updateArrayPatchChildIndexes,
+} from './arrayUtils';
 import { ArrayPatch, MapKey, Patch } from './Patch';
 import { isSet } from './typeChecks';
-import { updateArrayPatchChildIndexes } from './updateArrayPatchChildIndexes';
 
 /** Add all items from one Set into another. */
 function combineSets<TKey>(
     target: Set<TKey>,
-    additions: ReadonlySet<TKey> | IterableIterator<TKey>
+    additions: ReadonlySet<TKey> | IterableIterator<TKey>,
 ) {
     for (const item of additions) {
         target.add(item);
@@ -17,7 +19,7 @@ function combineSets<TKey>(
 /** Add all entries from one Map into another, overwriting existing values. */
 function combineMaps<TKey, TValue>(
     target: Map<TKey, TValue>,
-    additions: ReadonlyMap<TKey, TValue> | Iterable<readonly [TKey, TValue]>
+    additions: ReadonlyMap<TKey, TValue> | Iterable<readonly [TKey, TValue]>,
 ) {
     for (const [key, value] of additions) {
         target.set(key, value);
@@ -27,25 +29,11 @@ function combineMaps<TKey, TValue>(
 /** Remove all entries from Map whose key is present in a separate Set. */
 function removeKeys<TKey>(
     target: Map<TKey, unknown> | Set<TKey>,
-    keysToExclude: ReadonlySet<TKey> | IterableIterator<TKey>
+    keysToExclude: ReadonlySet<TKey> | IterableIterator<TKey>,
 ) {
     for (const key of keysToExclude) {
         target.delete(key);
     }
-}
-
-/**
- * Merge multiple patches into one, returning a new patch that contains all changes from all patches.
- * @param patches All patches to be merged, in order from oldest to newest.
- */
-export function combinePatches(...patches: Patch[]): Patch {
-    const result: Patch = { };
-
-    for (let i = 0; i < patches.length; i++) {
-        appendPatch(result, patches[i]);
-    }
-
-    return result;
 }
 
 /**
@@ -59,30 +47,26 @@ function appendPatch(target: Patch, addition: Patch) {
             // Add to target.d, and remove corresponding entries from target.s and target.c
             if ('d' in target && isSet(target.d)) {
                 combineSets(target.d, addition.d);
-            }
-            else {
+            } else {
                 (target as any).d = new Set(addition.d);
             }
 
             if ('s' in target && target.s !== undefined) {
                 removeKeys(target.s, addition.d);
-            }
-            else if ('a' in target && target.a !== undefined) {
+            } else if ('a' in target && target.a !== undefined) {
                 removeKeys(target.a, addition.d);
             }
 
             if ('c' in target && target.c !== undefined) {
                 removeKeys(target.c, addition.d);
             }
-        }
-        else {
+        } else {
             // As addition.d is true, make target.d true, and discard target.s and target.a.
             (target as any).d = true;
 
             if ('s' in target && target.s !== undefined) {
                 delete target.s;
-            }
-            else if ('a' in target && target.a !== undefined) {
+            } else if ('a' in target && target.a !== undefined) {
                 delete target.a;
             }
         }
@@ -93,8 +77,7 @@ function appendPatch(target: Patch, addition: Patch) {
         // Add to target.s, and remove corresponding entries from target.d and target.c
         if ('s' in target && target.s !== undefined) {
             combineMaps(target.s, addition.s);
-        }
-        else {
+        } else {
             (target as any).s = new Map(addition.s);
         }
 
@@ -105,8 +88,7 @@ function appendPatch(target: Patch, addition: Patch) {
         if ('c' in target && target.c !== undefined) {
             removeKeys(target.c, addition.s.keys());
         }
-    }
-    else if ('a' in addition && addition.a !== undefined) {
+    } else if ('a' in addition && addition.a !== undefined) {
         // Add to target.a, and remove corresponding entries from target.d
         if ('a' in target && target.a !== undefined) {
             combineSets(target.a, addition.a);
@@ -121,8 +103,7 @@ function appendPatch(target: Patch, addition: Patch) {
     if ('o' in addition && addition.o !== undefined) {
         if ('o' in target && target.o !== undefined) {
             target.o = [...target.o, ...addition.o];
-        }
-        else {
+        } else {
             (target as ArrayPatch).o = [...addition.o];
         }
 
@@ -132,7 +113,10 @@ function appendPatch(target: Patch, addition: Patch) {
             for (const operation of addition.o) {
                 const getNewIndex = getArrayChildIndexAdjustment(operation);
                 if (getNewIndex !== null) {
-                    updateArrayPatchChildIndexes(target as ArrayPatch, getNewIndex);
+                    updateArrayPatchChildIndexes(
+                        target as ArrayPatch,
+                        getNewIndex,
+                    );
                 }
             }
         }
@@ -141,9 +125,10 @@ function appendPatch(target: Patch, addition: Patch) {
     // Add child patches, potentially updating corresponding existing child patches.
     if ('c' in addition && addition.c !== undefined) {
         // Add to result.c, unless we should instead update an existing entry in target.c or target.s
-        const targetC = 'c' in target && target.c !== undefined
-            ? new Map<MapKey, Patch>(target.c)
-            : new Map<MapKey, Patch>();
+        const targetC =
+            'c' in target && target.c !== undefined
+                ? new Map<MapKey, Patch>(target.c)
+                : new Map<MapKey, Patch>();
 
         for (const [key, childPatch] of addition.c) {
             const targetPatchValue = targetC.get(key);
@@ -152,8 +137,7 @@ function appendPatch(target: Patch, addition: Patch) {
                 // Target already has a patch for this child, so combine the two patches.
                 combinePatches(targetPatchValue, childPatch);
                 continue;
-            }
-            else if ('s' in target && target.s !== undefined) {
+            } else if ('s' in target && target.s !== undefined) {
                 const targetSetValue = target.s.get(key as string);
 
                 if (targetSetValue !== undefined) {
@@ -162,7 +146,7 @@ function appendPatch(target: Patch, addition: Patch) {
                     continue;
                 }
             }
-            
+
             // Add to target.c
             targetC.set(key, childPatch);
         }
@@ -171,4 +155,18 @@ function appendPatch(target: Patch, addition: Patch) {
             (target as any).c = targetC;
         }
     }
+}
+
+/**
+ * Merge multiple patches into one, returning a new patch that contains all changes from all patches.
+ * @param patches All patches to be merged, in order from oldest to newest.
+ */
+export function combinePatches(...patches: Patch[]): Patch {
+    const result: Patch = {};
+
+    for (let i = 0; i < patches.length; i++) {
+        appendPatch(result, patches[i]);
+    }
+
+    return result;
 }

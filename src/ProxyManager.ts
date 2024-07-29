@@ -5,10 +5,12 @@ import {
     FilterKey,
     unfilteredFilter,
 } from './Filter';
-import { getArrayChildIndexAdjustment } from './getArrayChildIndexAdjustment';
+import {
+    getArrayChildIndexAdjustment,
+    updateArrayPatchChildIndexes,
+} from './arrayUtils';
 import { ArrayPatch, MapPatch, ObjectPatch, Patch, SetPatch } from './Patch';
 import { isArray, isMap, isSet } from './typeChecks';
-import { updateArrayPatchChildIndexes } from './updateArrayPatchChildIndexes';
 
 export type FilterIdentifer = string | number | null;
 
@@ -309,7 +311,7 @@ export class ProxyManager<TRoot extends object> {
                             const removing = target[i];
                             this.removeProxy(removing);
                         }
-                        
+
                         const operation: ArrayOperation = {
                             o: ArrayOperationType.Splice,
                             i: start,
@@ -327,7 +329,7 @@ export class ProxyManager<TRoot extends object> {
                     return () => {
                         const operation: ArrayOperation = {
                             o: ArrayOperationType.Shift,
-                        }
+                        };
 
                         this.addArrayOp(info, operation);
 
@@ -357,11 +359,11 @@ export class ProxyManager<TRoot extends object> {
                     return () => {
                         const operation: ArrayOperation = {
                             o: ArrayOperationType.Reverse,
-                            l: (info.underlying as any[]).length
+                            l: (info.underlying as any[]).length,
                         };
 
                         this.addArrayOp(info, operation);
-                        
+
                         this.adjustArrayChildIndexes(info, operation);
 
                         return target.reverse();

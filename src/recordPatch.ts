@@ -45,7 +45,10 @@ type SpecifiedFilterIdentifier = Exclude<FilterIdentifer, null>;
 const NoFilter = 1;
 const SingleFilter = 2;
 const MultipleFilters = 3;
-type FilterMode = typeof NoFilter | typeof SingleFilter | typeof MultipleFilters;
+type FilterMode =
+    | typeof NoFilter
+    | typeof SingleFilter
+    | typeof MultipleFilters;
 
 /**
  * Indicate that you wish to begin tracking all changes to an object tree, to subsequently generate a patch of those changes.
