@@ -92,6 +92,8 @@ function appendPatch(target: Patch, addition: Patch) {
         // Add to target.a, and remove corresponding entries from target.d
         if ('a' in target && target.a !== undefined) {
             combineSets(target.a, addition.a);
+        } else {
+            (target as any).a = new Set(addition.a);
         }
 
         if ('d' in target && isSet(target.d)) {
