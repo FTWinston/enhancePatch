@@ -47,7 +47,7 @@ function appendPatch(target: Patch, addition: Patch) {
             // Add to target.d, and remove corresponding entries from target.s and target.c
             if ('d' in target && isSet(target.d)) {
                 combineSets(target.d, addition.d);
-            } else {
+            } else if (!('d' in target) || target.d !== true) {
                 (target as any).d = new Set(addition.d);
             }
 
@@ -61,13 +61,17 @@ function appendPatch(target: Patch, addition: Patch) {
                 removeKeys(target.c, addition.d);
             }
         } else {
-            // As addition.d is true, make target.d true, and discard target.s and target.a.
+            // As addition.d is true, make target.d true, and discard target.s, target.a, and target.c
             (target as any).d = true;
 
             if ('s' in target && target.s !== undefined) {
                 delete target.s;
             } else if ('a' in target && target.a !== undefined) {
                 delete target.a;
+            }
+
+            if ('c' in target && target.c !== undefined) {
+                delete target.c;
             }
         }
     }
@@ -137,14 +141,19 @@ function appendPatch(target: Patch, addition: Patch) {
 
             if (targetPatchValue !== undefined) {
                 // Target already has a patch for this child, so combine the two patches.
-                combinePatches(targetPatchValue, childPatch);
+                const combinedPatch = combinePatches(
+                    targetPatchValue,
+                    childPatch,
+                );
+                targetC.set(key, combinedPatch);
                 continue;
             } else if ('s' in target && target.s !== undefined) {
                 const targetSetValue = target.s.get(key as string);
 
                 if (targetSetValue !== undefined) {
                     // Result sets this value, so just apply this child patch to the value it sets.
-                    applyPatch(targetSetValue, childPatch);
+                    const appliedPatch = applyPatch(targetSetValue, childPatch);
+                    target.s.set(key as string, appliedPatch);
                     continue;
                 }
             }

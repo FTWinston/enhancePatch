@@ -1,7 +1,28 @@
+import { ArrayOperationType } from './ArrayOperation';
 import { combinePatches } from './combinePatches';
 import { Patch } from './Patch';
 
 describe('s in newer patch', () => {
+    test('all retained when not present on newer', () => {
+        const patch1: Patch = {
+            s: new Map([
+                ['a', 1],
+                ['b', 2],
+            ]),
+        };
+
+        const patch2: Patch = {};
+
+        const newPatch = combinePatches(patch1, patch2);
+
+        expect(newPatch).toEqual({
+            s: new Map([
+                ['a', 1],
+                ['b', 2],
+            ]),
+        });
+    });
+
     test('all retained when not present on older', () => {
         const patch1: Patch = {};
 
@@ -99,6 +120,20 @@ describe('s in newer patch', () => {
 });
 
 describe('d in newer patch', () => {
+    test('all retained when not present on newer', () => {
+        const patch1: Patch = {
+            d: new Set(['a', 'b']),
+        };
+
+        const patch2: Patch = {};
+
+        const newPatch = combinePatches(patch1, patch2);
+
+        expect(newPatch).toEqual({
+            d: new Set(['a', 'b']),
+        });
+    });
+
     test('all retained when not present on older', () => {
         const patch1: Patch = {};
 
@@ -188,7 +223,97 @@ describe('d in newer patch', () => {
 });
 
 describe('c in newer patch', () => {
-    // TODO: test every combination
+    test('all retained when not present on older', () => {
+        const patch1: Patch = {};
+
+        const patch2: Patch = {
+            c: new Map([
+                ['a', {}],
+                ['b', {}],
+            ]),
+        };
+
+        const newPatch = combinePatches(patch1, patch2);
+
+        expect(newPatch).toEqual({
+            c: new Map([
+                ['a', {}],
+                ['b', {}],
+            ]),
+        });
+    });
+
+    test('all retained when not present on newer', () => {
+        const patch1: Patch = {
+            c: new Map([
+                ['a', {}],
+                ['b', {}],
+            ]),
+        };
+
+        const patch2: Patch = {};
+
+        const newPatch = combinePatches(patch1, patch2);
+
+        expect(newPatch).toEqual({
+            c: new Map([
+                ['a', {}],
+                ['b', {}],
+            ]),
+        });
+    });
+
+    test('newer combines with older', () => {
+        const patch1: Patch = {
+            c: new Map([
+                ['a', { a: new Set([1, 2, 3]), d: new Set([4, 5, 6]) }],
+                ['b', {}],
+            ]),
+        };
+
+        const patch2: Patch = {
+            c: new Map([
+                ['a', { a: new Set([7, 8]), d: new Set([9, 10]) }],
+                ['c', {}],
+            ]),
+        };
+
+        const newPatch = combinePatches(patch1, patch2);
+
+        expect(newPatch).toEqual({
+            c: new Map([
+                [
+                    'a',
+                    {
+                        a: new Set([1, 2, 3, 7, 8]),
+                        d: new Set([4, 5, 6, 9, 10]),
+                    },
+                ],
+                ['b', {}],
+                ['c', {}],
+            ]),
+        });
+    });
+
+    test('newer applies to s on older', () => {
+        const patch1: Patch = {
+            s: new Map([['a', { a1: 1, a2: 2 }]]),
+        };
+
+        const patch2: Patch = {
+            c: new Map([
+                ['a', { s: new Map([['a2', 3]]) }],
+                ['b', {}],
+            ]),
+        };
+
+        const newPatch = combinePatches(patch1, patch2);
+
+        expect(newPatch).toEqual({
+            s: new Map([['a', { a1: 1, a2: 3 }]]),
+            c: new Map([['b', {}]]),
+        });
+    });
 });
 
 describe('a in newer patch', () => {
@@ -241,30 +366,357 @@ describe('a in newer patch', () => {
 });
 
 describe('o in newer patch', () => {
-    // TODO: test every combination
+    test('all retained when not present on newer', () => {
+        const patch1: Patch = {
+            o: [
+                {
+                    o: ArrayOperationType.Set,
+                    i: 0,
+                    v: 'x'
+                },
+                {
+                    o: ArrayOperationType.Set,
+                    i: 1,
+                    v: 'y'
+                }
+            ]
+        };
+
+        const patch2: Patch = {};
+
+        const newPatch = combinePatches(patch1, patch2);
+
+        expect(newPatch).toEqual({
+            o: [
+                {
+                    o: ArrayOperationType.Set,
+                    i: 0,
+                    v: 'x'
+                },
+                {
+                    o: ArrayOperationType.Set,
+                    i: 1,
+                    v: 'y'
+                }
+            ]
+        });
+    });
+
+    test('all retained when not present on older', () => {
+        const patch1: Patch = {};
+
+        const patch2: Patch = {
+            o: [
+                {
+                    o: ArrayOperationType.Set,
+                    i: 0,
+                    v: 'x'
+                },
+                {
+                    o: ArrayOperationType.Set,
+                    i: 1,
+                    v: 'y'
+                }
+            ]
+        };
+
+        const newPatch = combinePatches(patch1, patch2);
+
+        expect(newPatch).toEqual({
+            o: [
+                {
+                    o: ArrayOperationType.Set,
+                    i: 0,
+                    v: 'x'
+                },
+                {
+                    o: ArrayOperationType.Set,
+                    i: 1,
+                    v: 'y'
+                }
+            ]
+        });
+    });
+
+    test('newer appended after older', () => {
+        const patch1: Patch = {
+            o: [
+                {
+                    o: ArrayOperationType.Set,
+                    i: 0,
+                    v: 'x'
+                },
+                {
+                    o: ArrayOperationType.Set,
+                    i: 1,
+                    v: 'y'
+                }
+            ]
+        };
+
+        const patch2: Patch = {
+            o: [
+                {
+                    o: ArrayOperationType.Set,
+                    i: 2,
+                    v: 'z'
+                },
+                {
+                    o: ArrayOperationType.Set,
+                    i: 3,
+                    v: 'a'
+                }
+            ]
+        };
+
+        const newPatch = combinePatches(patch1, patch2);
+
+        expect(newPatch).toEqual({
+            o: [
+                {
+                    o: ArrayOperationType.Set,
+                    i: 0,
+                    v: 'x'
+                },
+                {
+                    o: ArrayOperationType.Set,
+                    i: 1,
+                    v: 'y'
+                },
+                {
+                    o: ArrayOperationType.Set,
+                    i: 2,
+                    v: 'z'
+                },
+                {
+                    o: ArrayOperationType.Set,
+                    i: 3,
+                    v: 'a'
+                }
+            ]
+        });
+    });
+
+    test('indexes in older c updated, single operation', () => {
+        const patch1: Patch = {
+            c: new Map([
+                [0, { a: new Set([1]) }],
+                [1, { b: new Set([2]) }]
+            ])
+        };
+
+        const patch2: Patch = {
+            o: [
+                {
+                    o: ArrayOperationType.Reverse,
+                    l: 2,
+                }
+            ]
+        };
+
+        const newPatch = combinePatches(patch1, patch2);
+
+        expect(newPatch).toEqual({
+            c: new Map([
+                [0, { b: new Set([2]) }],
+                [1, { a: new Set([1]) }]
+            ]),
+            o: [
+                {
+                    o: ArrayOperationType.Reverse,
+                    l: 2,
+                }
+            ]
+        });
+    });
+
+    test('indexes in older c updated, multiple operations', () => {
+        const patch1: Patch = {
+            c: new Map([
+                [0, { a: new Set([0]) }],
+                [1, { b: new Set([1]) }],
+                [2, { c: new Set([2]) }],
+                [3, { d: new Set([3]) }],
+            ])
+        };
+
+        const patch2: Patch = {
+            o: [
+                {
+                    o: ArrayOperationType.Shift,
+                },
+                {
+                    o: ArrayOperationType.Reverse,
+                    l: 3,
+                },
+                {
+                    o: ArrayOperationType.Shift,
+                }
+            ]
+        };
+
+        const newPatch = combinePatches(patch1, patch2);
+
+        expect(newPatch).toEqual({
+            c: new Map([
+                [0, { c: new Set([2]) }],
+                [1, { b: new Set([1]) }]
+            ]),
+            o: [
+                {
+                    o: ArrayOperationType.Shift,
+                },
+                {
+                    o: ArrayOperationType.Reverse,
+                    l: 3,
+                },
+                {
+                    o: ArrayOperationType.Shift,
+                }
+            ]
+        });
+    });
 });
 
 describe('d true in older patch', () => {
-    // TODO: test every combination
+    test('d in newer patch discarded', () => {
+        const patch1: Patch = {
+            d: true,
+        };
+
+        const patch2: Patch = {
+            d: new Set(['c', 'd']),
+        };
+
+        const newPatch = combinePatches(patch1, patch2);
+
+        expect(newPatch).toEqual({
+            d: true,
+        });
+    });
 });
 
 describe('d true in newer patch', () => {
-    // TODO: test every combination
+    test('s in older patch removed', () => {
+        const patch1: Patch = {
+            s: new Map([
+                ['a', 1],
+                ['b', 2],
+            ]),
+        };
+
+        const patch2: Patch = {
+            d: true,
+        };
+
+        const newPatch = combinePatches(patch1, patch2);
+
+        expect(newPatch).toEqual({
+            d: true,
+        });
+    });
+
+    test('a in older patch removed', () => {
+        const patch1: Patch = {
+            a: new Set(['a', 'b']),
+        };
+
+        const patch2: Patch = {
+            d: true,
+        };
+
+        const newPatch = combinePatches(patch1, patch2);
+
+        expect(newPatch).toEqual({
+            d: true,
+        });
+    });
+
+    test('c in older patch removed', () => {
+        const patch1: Patch = {
+            c: new Map([
+                ['e', {}],
+                ['f', {}],
+            ]),
+        };
+
+        const patch2: Patch = {
+            d: true,
+        };
+
+        const newPatch = combinePatches(patch1, patch2);
+
+        expect(newPatch).toEqual({
+            d: true,
+        });
+    });
+
+    test('d in older patch discarded', () => {
+        const patch1: Patch = {
+            d: new Set(['c', 'd']),
+        };
+
+        const patch2: Patch = {
+            d: true,
+        };
+
+        const newPatch = combinePatches(patch1, patch2);
+
+        expect(newPatch).toEqual({
+            d: true,
+        });
+    });
 });
 
 describe('original patches unmodified', () => {
-    test('one patch', () => {
+    test('one Map (or object) patch', () => {
         const patch1: Patch = {
             s: new Map([['a', 1]]),
             d: new Set(['b']),
             c: new Map([['c', {}]]),
         };
 
-        const newPatch = combinePatches(patch1);
+        const newPatch: any = combinePatches(patch1);
 
         expect(newPatch).not.toBe(patch1);
 
         expect(newPatch).toEqual(patch1);
+
+        expect(newPatch.s).not.toBe(patch1.s);
+        expect(newPatch.d).not.toBe(patch1.d);
+        expect(newPatch.c).not.toBe(patch1.c);
+    });
+
+    test('one Set patch', () => {
+        const patch1: Patch = {
+            a: new Set(['a']),
+            d: new Set(['b']),
+        };
+
+        const newPatch: any = combinePatches(patch1);
+
+        expect(newPatch).not.toBe(patch1);
+
+        expect(newPatch).toEqual(patch1);
+
+        expect(newPatch.a).not.toBe(patch1.a);
+        expect(newPatch.d).not.toBe(patch1.d);
+    });
+
+    test('one Array patch', () => {
+        const patch1: Patch = {
+            o: [],
+            c: new Map([[1, {}]]),
+        };
+
+        const newPatch: any = combinePatches(patch1);
+
+        expect(newPatch).not.toBe(patch1);
+
+        expect(newPatch).toEqual(patch1);
+
+        expect(newPatch.o).not.toBe(patch1.o);
+        expect(newPatch.c).not.toBe(patch1.c);
     });
 
     test('two patches, both are populated', () => {
