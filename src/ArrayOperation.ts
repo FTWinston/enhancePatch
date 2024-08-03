@@ -18,8 +18,7 @@ export enum ArrayOperationType {
 export type ArrayOperation =
     | ArraySetOperation
     | ArrayDeleteOperation
-    | ArraySpliceOperation1
-    | ArraySpliceOperation2
+    | ArraySpliceOperation
     | ArrayShiftOperation
     | ArrayUnshiftOperation
     | ArrayReverseOperation;
@@ -40,16 +39,7 @@ export interface ArrayDeleteOperation {
     i: number;
 }
 
-export interface ArraySpliceOperation1 {
-    /** array operation type */
-    o: typeof ArrayOperationType.Splice;
-    /** start index */
-    i: number;
-    /** delete count */
-    d: number;
-}
-
-export interface ArraySpliceOperation2 {
+export interface ArraySpliceOperation {
     /** array operation type */
     o: typeof ArrayOperationType.Splice;
     /** start index */
@@ -75,4 +65,6 @@ export interface ArrayUnshiftOperation {
 export interface ArrayReverseOperation {
     /** array operation type */
     o: typeof ArrayOperationType.Reverse;
+    /** length of underlying array */
+    l: number;
 }
