@@ -1,3 +1,4 @@
+import { describe, expect, test } from 'vitest';
 import { applyPatch } from './applyPatch';
 import { recordPatch } from './recordPatch';
 

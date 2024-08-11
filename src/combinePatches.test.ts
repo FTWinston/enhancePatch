@@ -1,3 +1,4 @@
+import { describe, expect, test } from 'vitest';
 import { ArrayOperationType } from './ArrayOperation';
 import { combinePatches } from './combinePatches';
 import { Patch } from './Patch';
