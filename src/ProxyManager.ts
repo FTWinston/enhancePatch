@@ -14,7 +14,7 @@ import { isArray, isMap, isSet } from './typeChecks';
 export type FilterIdentifer = string | number | null;
 
 interface ProxyInfo {
-    filters: Map<FilterIdentifer, ConditionalFilter>;
+    filters: Map<FilterIdentifer, ConditionalFilter | true>;
     patches: Map<FilterIdentifer, Patch>;
     parent?: ProxyInfo;
     addToOutput?: () => void;
@@ -76,22 +76,32 @@ export class ProxyManager<TRoot extends object> {
     }
 
     private getFilterField(
-        filter: Filter,
+        filter: Filter | true,
         field: FilterKey,
     ): ConditionalFilter | undefined {
-        const specificFilter = filter.fixedKeys?.[field];
+        let keyFilter: true | ConditionalFilter | undefined;
 
-        if (specificFilter === true) {
+        if (filter === true) {
+            keyFilter = true;
+        } else if ('keys' in filter) {
+            const specificFilter = filter.keys.get(field);
+
+            keyFilter = specificFilter ?? filter.other;
+        } else {
+            keyFilter = filter.any;
+        }
+
+        if (keyFilter === true) {
             return ({
-                otherKeys: true,
+                any: true,
             });
         }
 
-        return specificFilter ?? filter.otherKeys;
+        return keyFilter;
     }
 
     private shouldIncludeChild(
-        filter: ConditionalFilter | undefined,
+        filter: ConditionalFilter | true | undefined,
         field: FilterKey,
     ): boolean {
         if (filter === undefined) {
@@ -110,7 +120,7 @@ export class ProxyManager<TRoot extends object> {
     }
 
     private getChildFilters(
-        filters: Map<FilterIdentifer, ConditionalFilter>,
+        filters: Map<FilterIdentifer, ConditionalFilter | true>,
         field: FilterKey,
     ): Map<FilterIdentifer, ConditionalFilter | true> {
         const results = new Map<FilterIdentifer, ConditionalFilter | true>();
@@ -772,7 +782,7 @@ export class ProxyManager<TRoot extends object> {
 
     private createProxy<T extends object>(
         underlying: T,
-        filters: Map<FilterIdentifer, ConditionalFilter>,
+        filters: Map<FilterIdentifer, ConditionalFilter | true>,
         parent?: ProxyInfo,
         addToOutput?: () => void,
     ): TypedProxyInfo<T> {

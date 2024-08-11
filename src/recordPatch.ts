@@ -89,7 +89,7 @@ export function recordPatch<T extends object>(
     if (filter === undefined) {
         mode = NoFilter;
         filters = new Map<FilterIdentifer, Filter>();
-        filters.set(null, { otherKeys: true });
+        filters.set(null, { any: true });
     } else if (!(filter instanceof Map)) {
         mode = SingleFilter;
         const onlyFilter = filter;

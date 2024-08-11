@@ -7,7 +7,7 @@ test('empty filter', () => {
     const tree2: Record<string, number> = { x: 1 };
 
     const filter: Filter = {
-        fixedKeys: {}
+        keys: new Map()
     };
 
     const { getPatch } = recordPatch(tree1, filter);
@@ -28,9 +28,7 @@ describe('modify root, include true, single fixed key', () => {
         const tree2: Record<string, number> = { x: 1, y: 2 };
 
         const filter: Filter = {
-            fixedKeys: {
-                x: true
-            }
+            keys: new Map([['x', true]])
         };
 
         const { proxy, getPatch } = recordPatch(tree1, filter);
@@ -53,9 +51,7 @@ describe('modify root, include true, single fixed key', () => {
         const tree2: Record<string, number> = {};
 
         const filter: Filter = {
-            fixedKeys: {
-                x: true
-            }
+            keys: new Map([['x', true]])
         };
 
         const { proxy, getPatch } = recordPatch(tree1, filter);
@@ -77,9 +73,7 @@ describe('modify root, include true, single fixed key', () => {
         const tree2: Record<string, number> = { x: 1, y: 2 };
 
         const filter: Filter = {
-            fixedKeys: {
-                x: true
-            }
+            keys: new Map([['x', true]])
         };
 
         const { proxy, getPatch } = recordPatch(tree1, filter);
@@ -101,9 +95,7 @@ describe('modify root, include true, single fixed key', () => {
         const tree2: string[] = ['a', 'b'];
 
         const filter: Filter = {
-            fixedKeys: {
-                x: true
-            }
+            keys: new Map([[0, true]])
         };
 
         const { proxy, getPatch } = recordPatch(tree1, filter);
@@ -123,9 +115,7 @@ describe('modify root, include true, single fixed key', () => {
         const tree2: string[] = [];
 
         const filter: Filter = {
-            fixedKeys: {
-                x: true
-            }
+            keys: new Map([[0, true]])
         };
 
         const { proxy, getPatch } = recordPatch(tree1, filter);
@@ -163,9 +153,7 @@ describe('modify root, include true, single fixed key', () => {
         ]);
 
         const filter: Filter = {
-            fixedKeys: {
-                x: true
-            }
+            keys: new Map([['x', true]])
         };
 
         const { proxy, getPatch } = recordPatch(tree1, filter);
@@ -190,9 +178,7 @@ describe('modify root, include true, single fixed key', () => {
         const tree2: Map<string, number> = new Map();
 
         const filter: Filter = {
-            fixedKeys: {
-                x: true
-            }
+            keys: new Map([['x', true]])
         };
 
         const { proxy, getPatch } = recordPatch(tree1, filter);
@@ -218,9 +204,7 @@ describe('modify root, include true, single fixed key', () => {
         ]);
 
         const filter: Filter = {
-            fixedKeys: {
-                x: true
-            }
+            keys: new Map([['x', true]])
         };
 
         const { proxy, getPatch } = recordPatch(tree1, filter);
