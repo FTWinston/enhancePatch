@@ -1,17 +1,17 @@
 /** Array operation type */
 export enum ArrayOperationType {
     /** Set a particular index in an array */
-    Set = 1,
+    Set = 's',
     /** Delete a particular index in an array */
-    Delete = 2,
+    Delete = 'd',
     /** Remove certain index(es) from an array, and optionally insert new values in the same location, adjusting hte indexes of all subsequent items */
-    Splice = 3,
+    Splice = 'sp',
     /** Remove first element from an array, adjusting the indexes of all remaining items */
-    Shift = 4,
+    Shift = 'sh',
     /** Add new items to the start of an array, adjusting the indexes of all existing items */
-    Unshift = 5,
+    Unshift = 'un',
     /** Reverse the order of an array */
-    Reverse = 6,
+    Reverse = 'r',
 }
 
 /** Array operation */
