@@ -8,15 +8,15 @@ type Conditional = {
 
 type FixedFieldFilter = {
     /** Filtering to apply to specific Object/Map/Set keys, or array indexes */
-    keys: Map<FilterKey, ConditionalFilter | true>;
+    keys: Map<FilterKey, ConditionalFilter | boolean>;
 
     /** Filtering to apply to any Object/Map/Set keys, or array indexes which aren't specified in `keys` */
-    other?: ConditionalFilter | true;
+    other?: ConditionalFilter | boolean;
 };
 
 type AnyFieldFilter = {
     /** Filtering to apply to any Object/Map/Set keys, or array indexes */
-    any: ConditionalFilter | true;
+    any: ConditionalFilter | boolean;
 }
 
 /** A filter to apply when recording a patch, to limit what is included in generated patch output */
