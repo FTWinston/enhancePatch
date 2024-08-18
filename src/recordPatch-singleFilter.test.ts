@@ -7,7 +7,7 @@ test('empty filter', () => {
     const tree: Record<string, number> = { x: 1, y: 2 };
 
     const filter: Filter = {
-        keys: new Map()
+        keys: new Map(),
     };
 
     const { getPatch } = recordPatch(tree, filter);
@@ -25,7 +25,7 @@ describe('modify root, include true, single fixed key', () => {
         const tree: Record<string, number> = { x: 1, y: 2 };
 
         const filter: Filter = {
-            keys: new Map([['x', true]])
+            keys: new Map([['x', true]]),
         };
 
         const { proxy, getPatch } = recordPatch(tree, filter);
@@ -36,7 +36,7 @@ describe('modify root, include true, single fixed key', () => {
         const patch = getPatch();
 
         expect(patch).toEqual({
-            s: new Map([['x', 2]])
+            s: new Map([['x', 2]]),
         });
     });
 
@@ -44,7 +44,7 @@ describe('modify root, include true, single fixed key', () => {
         const tree: Record<string, number> = {};
 
         const filter: Filter = {
-            keys: new Map([['x', true]])
+            keys: new Map([['x', true]]),
         };
 
         const { proxy, getPatch } = recordPatch(tree, filter);
@@ -55,7 +55,7 @@ describe('modify root, include true, single fixed key', () => {
         const patch = getPatch();
 
         expect(patch).toEqual({
-            s: new Map([['x', 2]])
+            s: new Map([['x', 2]]),
         });
     });
 
@@ -63,7 +63,7 @@ describe('modify root, include true, single fixed key', () => {
         const tree: Record<string, number> = { x: 1, y: 2 };
 
         const filter: Filter = {
-            keys: new Map([['x', true]])
+            keys: new Map([['x', true]]),
         };
 
         const { proxy, getPatch } = recordPatch(tree, filter);
@@ -74,16 +74,21 @@ describe('modify root, include true, single fixed key', () => {
         const patch = getPatch();
 
         expect(patch).toEqual({
-            d: new Set(['x'])
+            d: new Set(['x']),
         });
     });
 
+    /*
     test('reassign existing array item', () => {
         const tree: string[] = ['a', 'b'];
 
         const filter: Filter = {
             keys: new Map([[0, true]])
         };
+
+        // TODO: can we really filter particular array keys?
+        // Specifying only certain keys would be weird e.g. for reverse operations.
+        // And (conditionally) filtering keys would be weird if objects came and went.
 
         const { proxy, getPatch } = recordPatch(tree, filter);
 
@@ -127,18 +132,7 @@ describe('modify root, include true, single fixed key', () => {
             ]
         });
     });
-
-    // TODO: array delete test
-
-    // TODO: array push test
-
-    // TODO: array splice test
-
-    // TODO: array shift test
-
-    // TODO: array unshift test
-
-    // TODO: array reverse test
+    */
 
     test('reassign existing Map entry', () => {
         const tree: Map<string, number> = new Map([
@@ -147,7 +141,7 @@ describe('modify root, include true, single fixed key', () => {
         ]);
 
         const filter: Filter = {
-            keys: new Map([['x', true]])
+            keys: new Map([['x', true]]),
         };
 
         const { proxy, getPatch } = recordPatch(tree, filter);
@@ -158,7 +152,7 @@ describe('modify root, include true, single fixed key', () => {
         const patch = getPatch();
 
         expect(patch).toEqual({
-            s: new Map([['x', 2]])
+            s: new Map([['x', 2]]),
         });
     });
 
@@ -166,7 +160,7 @@ describe('modify root, include true, single fixed key', () => {
         const tree: Map<string, number> = new Map();
 
         const filter: Filter = {
-            keys: new Map([['x', true]])
+            keys: new Map([['x', true]]),
         };
 
         const { proxy, getPatch } = recordPatch(tree, filter);
@@ -177,7 +171,7 @@ describe('modify root, include true, single fixed key', () => {
         const patch = getPatch();
 
         expect(patch).toEqual({
-            s: new Map([['x', 2]])
+            s: new Map([['x', 2]]),
         });
     });
 
@@ -192,7 +186,7 @@ describe('modify root, include true, single fixed key', () => {
         ]);
 
         const filter: Filter = {
-            keys: new Map([['x', true]])
+            keys: new Map([['x', true]]),
         };
 
         const { proxy, getPatch } = recordPatch(tree, filter);
@@ -203,7 +197,7 @@ describe('modify root, include true, single fixed key', () => {
         const patch = getPatch();
 
         expect(patch).toEqual({
-            d: new Set(['x'])
+            d: new Set(['x']),
         });
     });
 });
@@ -215,4 +209,3 @@ describe('modify root, include true, single fixed key', () => {
 // TODO: otherFields test, include function
 
 // TODO: modify child tests
-

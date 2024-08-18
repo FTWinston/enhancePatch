@@ -373,14 +373,14 @@ describe('o in newer patch', () => {
                 {
                     o: ArrayOperationType.Set,
                     i: 0,
-                    v: 'x'
+                    v: 'x',
                 },
                 {
                     o: ArrayOperationType.Set,
                     i: 1,
-                    v: 'y'
-                }
-            ]
+                    v: 'y',
+                },
+            ],
         };
 
         const patch2: Patch = {};
@@ -392,14 +392,14 @@ describe('o in newer patch', () => {
                 {
                     o: ArrayOperationType.Set,
                     i: 0,
-                    v: 'x'
+                    v: 'x',
                 },
                 {
                     o: ArrayOperationType.Set,
                     i: 1,
-                    v: 'y'
-                }
-            ]
+                    v: 'y',
+                },
+            ],
         });
     });
 
@@ -411,14 +411,14 @@ describe('o in newer patch', () => {
                 {
                     o: ArrayOperationType.Set,
                     i: 0,
-                    v: 'x'
+                    v: 'x',
                 },
                 {
                     o: ArrayOperationType.Set,
                     i: 1,
-                    v: 'y'
-                }
-            ]
+                    v: 'y',
+                },
+            ],
         };
 
         const newPatch = combinePatches(patch1, patch2);
@@ -428,14 +428,14 @@ describe('o in newer patch', () => {
                 {
                     o: ArrayOperationType.Set,
                     i: 0,
-                    v: 'x'
+                    v: 'x',
                 },
                 {
                     o: ArrayOperationType.Set,
                     i: 1,
-                    v: 'y'
-                }
-            ]
+                    v: 'y',
+                },
+            ],
         });
     });
 
@@ -445,14 +445,14 @@ describe('o in newer patch', () => {
                 {
                     o: ArrayOperationType.Set,
                     i: 0,
-                    v: 'x'
+                    v: 'x',
                 },
                 {
                     o: ArrayOperationType.Set,
                     i: 1,
-                    v: 'y'
-                }
-            ]
+                    v: 'y',
+                },
+            ],
         };
 
         const patch2: Patch = {
@@ -460,14 +460,14 @@ describe('o in newer patch', () => {
                 {
                     o: ArrayOperationType.Set,
                     i: 2,
-                    v: 'z'
+                    v: 'z',
                 },
                 {
                     o: ArrayOperationType.Set,
                     i: 3,
-                    v: 'a'
-                }
-            ]
+                    v: 'a',
+                },
+            ],
         };
 
         const newPatch = combinePatches(patch1, patch2);
@@ -477,24 +477,24 @@ describe('o in newer patch', () => {
                 {
                     o: ArrayOperationType.Set,
                     i: 0,
-                    v: 'x'
+                    v: 'x',
                 },
                 {
                     o: ArrayOperationType.Set,
                     i: 1,
-                    v: 'y'
+                    v: 'y',
                 },
                 {
                     o: ArrayOperationType.Set,
                     i: 2,
-                    v: 'z'
+                    v: 'z',
                 },
                 {
                     o: ArrayOperationType.Set,
                     i: 3,
-                    v: 'a'
-                }
-            ]
+                    v: 'a',
+                },
+            ],
         });
     });
 
@@ -502,8 +502,8 @@ describe('o in newer patch', () => {
         const patch1: Patch = {
             c: new Map([
                 [0, { a: new Set([1]) }],
-                [1, { b: new Set([2]) }]
-            ])
+                [1, { b: new Set([2]) }],
+            ]),
         };
 
         const patch2: Patch = {
@@ -511,8 +511,8 @@ describe('o in newer patch', () => {
                 {
                     o: ArrayOperationType.Reverse,
                     l: 2,
-                }
-            ]
+                },
+            ],
         };
 
         const newPatch = combinePatches(patch1, patch2);
@@ -520,14 +520,14 @@ describe('o in newer patch', () => {
         expect(newPatch).toEqual({
             c: new Map([
                 [0, { b: new Set([2]) }],
-                [1, { a: new Set([1]) }]
+                [1, { a: new Set([1]) }],
             ]),
             o: [
                 {
                     o: ArrayOperationType.Reverse,
                     l: 2,
-                }
-            ]
+                },
+            ],
         });
     });
 
@@ -538,7 +538,7 @@ describe('o in newer patch', () => {
                 [1, { b: new Set([1]) }],
                 [2, { c: new Set([2]) }],
                 [3, { d: new Set([3]) }],
-            ])
+            ]),
         };
 
         const patch2: Patch = {
@@ -552,8 +552,8 @@ describe('o in newer patch', () => {
                 },
                 {
                     o: ArrayOperationType.Shift,
-                }
-            ]
+                },
+            ],
         };
 
         const newPatch = combinePatches(patch1, patch2);
@@ -561,7 +561,7 @@ describe('o in newer patch', () => {
         expect(newPatch).toEqual({
             c: new Map([
                 [0, { c: new Set([2]) }],
-                [1, { b: new Set([1]) }]
+                [1, { b: new Set([1]) }],
             ]),
             o: [
                 {
@@ -573,8 +573,8 @@ describe('o in newer patch', () => {
                 },
                 {
                     o: ArrayOperationType.Shift,
-                }
-            ]
+                },
+            ],
         });
     });
 });

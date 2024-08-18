@@ -1,9 +1,5 @@
 import { ArrayOperation, ArrayOperationType } from './ArrayOperation';
-import {
-    ConditionalFilter,
-    Filter,
-    FilterKey,
-} from './Filter';
+import { ConditionalFilter, Filter, FilterKey } from './Filter';
 import {
     getArrayChildIndexAdjustment,
     updateArrayPatchChildIndexes,
@@ -92,11 +88,10 @@ export class ProxyManager<TRoot extends object> {
         }
 
         if (keyFilter === true) {
-            return ({
+            return {
                 any: true,
-            });
-        }
-        else if (keyFilter === false) {
+            };
+        } else if (keyFilter === false) {
             return undefined;
         }
 
@@ -117,9 +112,7 @@ export class ProxyManager<TRoot extends object> {
             return false;
         }
 
-        return fieldFilter.include
-            ? fieldFilter.include(field)
-            : true;
+        return fieldFilter.include ? fieldFilter.include(field) : true;
     }
 
     private getChildFilters(
@@ -129,7 +122,8 @@ export class ProxyManager<TRoot extends object> {
         const results = new Map<FilterIdentifer, ConditionalFilter | boolean>();
 
         for (const [identifier, filter] of filters) {
-            const fieldFilter = filter !== undefined
+            const fieldFilter =
+                filter !== undefined
                     ? this.getFilterField(filter, field)
                     : true;
 

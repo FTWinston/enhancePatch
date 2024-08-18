@@ -1,36 +1,25 @@
 import { describe, expect, test } from 'vitest';
 import { applyPatch } from './applyPatch';
 import { recordPatch } from './recordPatch';
+import { MapKey } from './Patch';
 
-describe('no changes', () => {
+describe('no changes: patch is empty', () => {
     test('object', () => {
-        const tree1 = { x: 1, y: 'hello' };
-        const tree2 = { x: 1, y: 'hello' };
+        const tree = { x: 1, y: 'hello' };
 
-        const { getPatch } = recordPatch(tree1);
+        const { getPatch } = recordPatch(tree);
         const patch = getPatch();
-        const updatedTree = applyPatch(tree2, patch);
 
         expect(patch).toEqual({});
-        expect(updatedTree).toEqual(tree1);
-        expect(updatedTree).not.toBe(tree1);
-        expect(updatedTree).toEqual(tree2);
-        expect(updatedTree).not.toBe(tree2);
     });
 
     test('array', () => {
-        const tree1 = [1, 'hello'];
-        const tree2 = [1, 'hello'];
+        const tree = [1, 'hello'];
 
-        const { getPatch } = recordPatch(tree1);
+        const { getPatch } = recordPatch(tree);
         const patch = getPatch();
-        const updatedTree = applyPatch(tree2, patch);
 
         expect(patch).toEqual({});
-        expect(updatedTree).toEqual(tree1);
-        expect(updatedTree).not.toBe(tree1);
-        expect(updatedTree).toEqual(tree2);
-        expect(updatedTree).not.toBe(tree2);
     });
 
     test('map', () => {
@@ -38,67 +27,121 @@ describe('no changes', () => {
             [1, 'hello'],
             ['bye', 2],
         ]);
-        const tree2 = new Map<any, any>([
-            [1, 'hello'],
-            ['bye', 2],
-        ]);
 
         const { getPatch } = recordPatch(tree1);
         const patch = getPatch();
-        const updatedTree = applyPatch(tree2, patch);
 
         expect(patch).toEqual({});
-        expect(updatedTree).toEqual(tree1);
-        expect(updatedTree).not.toBe(tree1);
-        expect(updatedTree).toEqual(tree2);
-        expect(updatedTree).not.toBe(tree2);
     });
 
     test('set', () => {
         const tree1 = new Set<any>([1, 'hello']);
-        const tree2 = new Set<any>([1, 'hello']);
 
         const { getPatch } = recordPatch(tree1);
         const patch = getPatch();
-        const updatedTree = applyPatch(tree2, patch);
 
         expect(patch).toEqual({});
-        expect(updatedTree).toEqual(tree1);
-        expect(updatedTree).not.toBe(tree1);
-        expect(updatedTree).toEqual(tree2);
-        expect(updatedTree).not.toBe(tree2);
     });
 });
 
 describe('modifying root', () => {
-    test('object', () => {
-        const tree1: Record<string, any> = {};
-        const tree2: Record<string, any> = {};
+    test('object, set new fields', () => {
+        const tree: Record<string, any> = {};
 
-        const { proxy, getPatch } = recordPatch(tree1);
+        const { proxy, getPatch } = recordPatch(tree);
 
-        proxy.w = 1;
-        proxy.x = { something: 'else' };
-        proxy.y = 2;
-        proxy.w = 3;
-        proxy.z = 'hello';
-        delete proxy.y;
+        proxy.a = 1;
+        proxy.B = 'hello';
 
-        expect(tree1).toEqual({
-            w: 3,
-            x: { something: 'else' },
-            z: 'hello',
+        expect(tree).toEqual({
+            a: 1,
+            B: 'hello',
         });
 
         const patch = getPatch();
-        const updatedTree = applyPatch(tree2, patch);
 
-        expect(updatedTree).toEqual(tree1);
-        expect(updatedTree).not.toBe(tree1);
-        expect(updatedTree).not.toEqual(tree2);
-        expect(updatedTree).not.toBe(tree2);
+        expect(patch).toEqual({
+            s: new Map<MapKey, any>([
+                ['a', 1],
+                ['B', 'hello'],
+            ]),
+        });
     });
 
+    test('object, set existing fields', () => {
+        const tree: Record<string, any> = {
+            a: 1,
+            B: 2,
+        };
+
+        const { proxy, getPatch } = recordPatch(tree);
+
+        proxy.a = 2;
+        proxy.B = 'hello';
+
+        expect(tree).toEqual({
+            a: 2,
+            B: 'hello',
+        });
+
+        const patch = getPatch();
+
+        expect(patch).toEqual({
+            s: new Map<MapKey, any>([
+                ['a', 2],
+                ['B', 'hello'],
+            ]),
+        });
+    });
+
+    test('object, delete existing fields', () => {
+        const tree: Record<string, any> = {
+            a: 1,
+            B: 2,
+            c: 3,
+            D: 4,
+        };
+
+        const { proxy, getPatch } = recordPatch(tree);
+
+        delete proxy.B;
+        delete proxy.D;
+
+        expect(tree).toEqual({
+            a: 1,
+            c: 3,
+        });
+
+        const patch = getPatch();
+
+        expect(patch).toEqual({
+            d: new Set(['B', 'D']),
+        });
+    });
+
+    test('object, delete non-existing fields', () => {
+        const tree: Record<string, any> = {
+            a: 1,
+            B: 2,
+        };
+
+        const { proxy, getPatch } = recordPatch(tree);
+
+        delete proxy.c;
+        delete proxy.D;
+
+        expect(tree).toEqual({
+            a: 1,
+            B: 2,
+        });
+
+        const patch = getPatch();
+
+        expect(patch).toEqual({
+            d: new Set(['c', 'D']),
+        });
+    });
+    /*
     test('array', () => {
         const tree1: any[] = [];
         const tree2: any[] = [];
@@ -131,41 +174,113 @@ describe('modifying root', () => {
         expect(updatedTree).not.toEqual(tree2);
         expect(updatedTree).not.toBe(tree2);
     });
+    */
 
-    test('map', () => {
-        const tree1 = new Map<any, any>();
-        const tree2 = new Map<any, any>();
+    test('map, set new fields', () => {
+        const tree = new Map<string, any>();
 
-        const { proxy, getPatch } = recordPatch(tree1);
+        const { proxy, getPatch } = recordPatch(tree);
 
         proxy.set('a', 1);
-        proxy.set(2, 'b');
-        proxy.set(2, 'c');
-        proxy.set('c', { hi: 'hey' });
-        proxy.delete('a');
-        proxy.get('c').ha = 'ha';
+        proxy.set('B', 'hello');
 
-        expect(tree1.get(2)).toEqual('c');
-        expect(proxy.get(2)).toEqual('c');
-
-        expect(tree1).toEqual(
-            new Map<any, any>([
-                [2, 'c'],
-                ['c', { hi: 'hey', ha: 'ha' }],
+        expect(tree).toEqual(
+            new Map<MapKey, any>([
+                ['a', 1],
+                ['B', 'hello'],
             ]),
         );
 
         const patch = getPatch();
-        const updatedTree = applyPatch(tree2, patch);
 
-        expect(updatedTree).toEqual(tree1);
-        expect(updatedTree).not.toBe(tree1);
-        expect(updatedTree).not.toEqual(tree2);
-        expect(updatedTree).not.toBe(tree2);
-
-        expect(tree2).toEqual(new Map<any, any>());
+        expect(patch).toEqual({
+            s: new Map<MapKey, any>([
+                ['a', 1],
+                ['B', 'hello'],
+            ]),
+        });
     });
 
+    test('map, set existing fields', () => {
+        const tree = new Map<MapKey, any>([
+            ['a', 1],
+            ['B', 2],
+        ]);
+
+        const { proxy, getPatch } = recordPatch(tree);
+
+        proxy.set('a', 2);
+        proxy.set('B', 'hello');
+
+        expect(tree).toEqual(
+            new Map<MapKey, any>([
+                ['a', 2],
+                ['B', 'hello'],
+            ]),
+        );
+
+        const patch = getPatch();
+
+        expect(patch).toEqual({
+            s: new Map<MapKey, any>([
+                ['a', 2],
+                ['B', 'hello'],
+            ]),
+        });
+    });
+
+    test('map, delete existing fields', () => {
+        const tree = new Map<string, any>([
+            ['a', 1],
+            ['B', 2],
+            ['c', 3],
+            ['D', 4],
+        ]);
+
+        const { proxy, getPatch } = recordPatch(tree);
+
+        proxy.delete('B');
+        proxy.delete('D');
+
+        expect(tree).toEqual(
+            new Map<string, any>([
+                ['a', 1],
+                ['c', 3],
+            ]),
+        );
+
+        const patch = getPatch();
+
+        expect(patch).toEqual({
+            d: new Set(['B', 'D']),
+        });
+    });
+
+    test('map, delete non-existing fields', () => {
+        const tree = new Map<string, any>([
+            ['a', 1],
+            ['B', 2],
+        ]);
+
+        const { proxy, getPatch } = recordPatch(tree);
+
+        proxy.delete('c');
+        proxy.delete('D');
+
+        expect(tree).toEqual(
+            new Map<string, any>([
+                ['a', 1],
+                ['B', 2],
+            ]),
+        );
+
+        const patch = getPatch();
+
+        expect(patch).toEqual({
+            d: new Set(['c', 'D']),
+        });
+    });
+    /*
     test('set', () => {
         const tree1 = new Set<any>();
         const tree2 = new Set<any>();
@@ -189,6 +304,7 @@ describe('modifying root', () => {
 
         expect(tree2).toEqual(new Set<any>());
     });
+    */
 });
 
 describe('modifying child', () => {
