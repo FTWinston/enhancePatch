@@ -301,6 +301,14 @@ export class ProxyManager<TRoot extends object> {
     }
 
     private createArrayHandler(info: ArrayPatchProxyInfo): ProxyHandler<any[]> {
+        for (const filter of info.filters.values()) {
+            if (filter !== true && filter !== false && 'keys' in filter) {
+                throw new Error(
+                    'Cannot filter keys of an array: only "any" filter can be used on an array',
+                );
+            }
+        }
+
         return {
             get: (target, field) => {
                 let val = (target as any)[field];

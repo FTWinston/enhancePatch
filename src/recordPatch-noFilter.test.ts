@@ -283,7 +283,7 @@ describe('modifying root', () => {
             });
         });
     });
-    
+
     describe('Set', () => {
         test('set new fields', () => {
             const tree = new Set();
@@ -294,9 +294,7 @@ describe('modifying root', () => {
             proxy.add('b');
             proxy.add(1);
 
-            expect(tree).toEqual(
-                new Set(['A', 'b', 1]),
-            );
+            expect(tree).toEqual(new Set(['A', 'b', 1]));
 
             const patch = getPatch();
 
@@ -314,9 +312,7 @@ describe('modifying root', () => {
             proxy.add('b');
             proxy.add(1);
 
-            expect(tree).toEqual(
-                new Set(['A', 'b', 1]),
-            );
+            expect(tree).toEqual(new Set(['A', 'b', 1]));
 
             const patch = getPatch();
 
@@ -333,9 +329,7 @@ describe('modifying root', () => {
             proxy.delete('A');
             proxy.delete(1);
 
-            expect(tree).toEqual(
-                new Set(['b']),
-            );
+            expect(tree).toEqual(new Set(['b']));
 
             const patch = getPatch();
 
@@ -352,9 +346,7 @@ describe('modifying root', () => {
             proxy.delete('C');
             proxy.delete(2);
 
-            expect(tree).toEqual(
-                new Set(['A', 'b', 1])
-            );
+            expect(tree).toEqual(new Set(['A', 'b', 1]));
 
             const patch = getPatch();
 

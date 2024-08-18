@@ -247,7 +247,7 @@ describe('modifying root', () => {
             );
         });
     });
-    
+
     describe('Set', () => {
         test('set new fields', () => {
             const tree = new Set();
@@ -259,9 +259,7 @@ describe('modifying root', () => {
 
             expect(updatedTree).not.toBe(tree);
             expect(updatedTree).not.toBe(patch.a);
-            expect(updatedTree).toEqual(
-                new Set(['A', 'b', 1]),
-            );
+            expect(updatedTree).toEqual(new Set(['A', 'b', 1]));
         });
 
         test('set existing fields', () => {
@@ -274,9 +272,7 @@ describe('modifying root', () => {
 
             expect(updatedTree).not.toBe(tree);
             expect(updatedTree).not.toBe(patch.a);
-            expect(updatedTree).toEqual(
-                new Set(['A', 'b', 1]),
-            );
+            expect(updatedTree).toEqual(new Set(['A', 'b', 1]));
         });
 
         test('delete existing fields', () => {
@@ -288,9 +284,7 @@ describe('modifying root', () => {
             const updatedTree = applyPatch(tree, patch);
 
             expect(updatedTree).not.toBe(tree);
-            expect(updatedTree).toEqual(
-                new Set(['b']),
-            );
+            expect(updatedTree).toEqual(new Set(['b']));
         });
 
         test('delete non-existing fields', () => {
@@ -302,9 +296,7 @@ describe('modifying root', () => {
             const updatedTree = applyPatch(tree, patch);
 
             expect(updatedTree).not.toBe(tree);
-            expect(updatedTree).toEqual(
-                new Set(['A', 'b', 1])
-            );
+            expect(updatedTree).toEqual(new Set(['A', 'b', 1]));
         });
     });
 });
