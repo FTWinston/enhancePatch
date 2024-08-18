@@ -4,7 +4,7 @@ import { recordPatch } from './recordPatch';
 import { MapKey } from './Patch';
 
 describe('no changes: patch is empty', () => {
-    test('object', () => {
+    test('Object', () => {
         const tree = { x: 1, y: 'hello' };
 
         const { getPatch } = recordPatch(tree);
@@ -13,7 +13,7 @@ describe('no changes: patch is empty', () => {
         expect(patch).toEqual({});
     });
 
-    test('array', () => {
+    test('Array', () => {
         const tree = [1, 'hello'];
 
         const { getPatch } = recordPatch(tree);
@@ -22,7 +22,7 @@ describe('no changes: patch is empty', () => {
         expect(patch).toEqual({});
     });
 
-    test('map', () => {
+    test('Map', () => {
         const tree1 = new Map<any, any>([
             [1, 'hello'],
             ['bye', 2],
@@ -34,7 +34,7 @@ describe('no changes: patch is empty', () => {
         expect(patch).toEqual({});
     });
 
-    test('set', () => {
+    test('Set', () => {
         const tree1 = new Set<any>([1, 'hello']);
 
         const { getPatch } = recordPatch(tree1);
@@ -45,104 +45,106 @@ describe('no changes: patch is empty', () => {
 });
 
 describe('modifying root', () => {
-    test('object, set new fields', () => {
-        const tree: Record<string, any> = {};
+    describe('Object', () => {
+        test('set new fields', () => {
+            const tree: Record<string, any> = {};
 
-        const { proxy, getPatch } = recordPatch(tree);
+            const { proxy, getPatch } = recordPatch(tree);
 
-        proxy.a = 1;
-        proxy.B = 'hello';
+            proxy.a = 1;
+            proxy.B = 'hello';
 
-        expect(tree).toEqual({
-            a: 1,
-            B: 'hello',
+            expect(tree).toEqual({
+                a: 1,
+                B: 'hello',
+            });
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                s: new Map<MapKey, any>([
+                    ['a', 1],
+                    ['B', 'hello'],
+                ]),
+            });
         });
 
-        const patch = getPatch();
+        test('set existing fields', () => {
+            const tree: Record<string, any> = {
+                a: 1,
+                B: 2,
+            };
 
-        expect(patch).toEqual({
-            s: new Map<MapKey, any>([
-                ['a', 1],
-                ['B', 'hello'],
-            ]),
-        });
-    });
+            const { proxy, getPatch } = recordPatch(tree);
 
-    test('object, set existing fields', () => {
-        const tree: Record<string, any> = {
-            a: 1,
-            B: 2,
-        };
+            proxy.a = 2;
+            proxy.B = 'hello';
 
-        const { proxy, getPatch } = recordPatch(tree);
+            expect(tree).toEqual({
+                a: 2,
+                B: 'hello',
+            });
 
-        proxy.a = 2;
-        proxy.B = 'hello';
+            const patch = getPatch();
 
-        expect(tree).toEqual({
-            a: 2,
-            B: 'hello',
-        });
-
-        const patch = getPatch();
-
-        expect(patch).toEqual({
-            s: new Map<MapKey, any>([
-                ['a', 2],
-                ['B', 'hello'],
-            ]),
-        });
-    });
-
-    test('object, delete existing fields', () => {
-        const tree: Record<string, any> = {
-            a: 1,
-            B: 2,
-            c: 3,
-            D: 4,
-        };
-
-        const { proxy, getPatch } = recordPatch(tree);
-
-        delete proxy.B;
-        delete proxy.D;
-
-        expect(tree).toEqual({
-            a: 1,
-            c: 3,
+            expect(patch).toEqual({
+                s: new Map<MapKey, any>([
+                    ['a', 2],
+                    ['B', 'hello'],
+                ]),
+            });
         });
 
-        const patch = getPatch();
+        test('delete existing fields', () => {
+            const tree: Record<string, any> = {
+                a: 1,
+                B: 2,
+                c: 3,
+                D: 4,
+            };
 
-        expect(patch).toEqual({
-            d: new Set(['B', 'D']),
+            const { proxy, getPatch } = recordPatch(tree);
+
+            delete proxy.B;
+            delete proxy.D;
+
+            expect(tree).toEqual({
+                a: 1,
+                c: 3,
+            });
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                d: new Set(['B', 'D']),
+            });
         });
-    });
 
-    test('object, delete non-existing fields', () => {
-        const tree: Record<string, any> = {
-            a: 1,
-            B: 2,
-        };
+        test('delete non-existing fields', () => {
+            const tree: Record<string, any> = {
+                a: 1,
+                B: 2,
+            };
 
-        const { proxy, getPatch } = recordPatch(tree);
+            const { proxy, getPatch } = recordPatch(tree);
 
-        delete proxy.c;
-        delete proxy.D;
+            delete proxy.c;
+            delete proxy.D;
 
-        expect(tree).toEqual({
-            a: 1,
-            B: 2,
-        });
+            expect(tree).toEqual({
+                a: 1,
+                B: 2,
+            });
 
-        const patch = getPatch();
+            const patch = getPatch();
 
-        expect(patch).toEqual({
-            d: new Set(['c', 'D']),
+            expect(patch).toEqual({
+                d: new Set(['c', 'D']),
+            });
         });
     });
     /*
-    test('array', () => {
+    describe('Array', () => {
         const tree1: any[] = [];
         const tree2: any[] = [];
 
@@ -175,136 +177,192 @@ describe('modifying root', () => {
         expect(updatedTree).not.toBe(tree2);
     });
     */
+    describe('Map', () => {
+        test('set new fields', () => {
+            const tree = new Map<string, any>();
 
-    test('map, set new fields', () => {
-        const tree = new Map<string, any>();
+            const { proxy, getPatch } = recordPatch(tree);
 
-        const { proxy, getPatch } = recordPatch(tree);
+            proxy.set('a', 1);
+            proxy.set('B', 'hello');
 
-        proxy.set('a', 1);
-        proxy.set('B', 'hello');
+            expect(tree).toEqual(
+                new Map<MapKey, any>([
+                    ['a', 1],
+                    ['B', 'hello'],
+                ]),
+            );
 
-        expect(tree).toEqual(
-            new Map<MapKey, any>([
-                ['a', 1],
-                ['B', 'hello'],
-            ]),
-        );
+            const patch = getPatch();
 
-        const patch = getPatch();
-
-        expect(patch).toEqual({
-            s: new Map<MapKey, any>([
-                ['a', 1],
-                ['B', 'hello'],
-            ]),
+            expect(patch).toEqual({
+                s: new Map<MapKey, any>([
+                    ['a', 1],
+                    ['B', 'hello'],
+                ]),
+            });
         });
-    });
 
-    test('map, set existing fields', () => {
-        const tree = new Map<MapKey, any>([
-            ['a', 1],
-            ['B', 2],
-        ]);
-
-        const { proxy, getPatch } = recordPatch(tree);
-
-        proxy.set('a', 2);
-        proxy.set('B', 'hello');
-
-        expect(tree).toEqual(
-            new Map<MapKey, any>([
-                ['a', 2],
-                ['B', 'hello'],
-            ]),
-        );
-
-        const patch = getPatch();
-
-        expect(patch).toEqual({
-            s: new Map<MapKey, any>([
-                ['a', 2],
-                ['B', 'hello'],
-            ]),
-        });
-    });
-
-    test('map, delete existing fields', () => {
-        const tree = new Map<string, any>([
-            ['a', 1],
-            ['B', 2],
-            ['c', 3],
-            ['D', 4],
-        ]);
-
-        const { proxy, getPatch } = recordPatch(tree);
-
-        proxy.delete('B');
-        proxy.delete('D');
-
-        expect(tree).toEqual(
-            new Map<string, any>([
-                ['a', 1],
-                ['c', 3],
-            ]),
-        );
-
-        const patch = getPatch();
-
-        expect(patch).toEqual({
-            d: new Set(['B', 'D']),
-        });
-    });
-
-    test('map, delete non-existing fields', () => {
-        const tree = new Map<string, any>([
-            ['a', 1],
-            ['B', 2],
-        ]);
-
-        const { proxy, getPatch } = recordPatch(tree);
-
-        proxy.delete('c');
-        proxy.delete('D');
-
-        expect(tree).toEqual(
-            new Map<string, any>([
+        test('set existing fields', () => {
+            const tree = new Map<MapKey, any>([
                 ['a', 1],
                 ['B', 2],
-            ]),
-        );
+            ]);
 
-        const patch = getPatch();
+            const { proxy, getPatch } = recordPatch(tree);
 
-        expect(patch).toEqual({
-            d: new Set(['c', 'D']),
+            proxy.set('a', 2);
+            proxy.set('B', 'hello');
+
+            expect(tree).toEqual(
+                new Map<MapKey, any>([
+                    ['a', 2],
+                    ['B', 'hello'],
+                ]),
+            );
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                s: new Map<MapKey, any>([
+                    ['a', 2],
+                    ['B', 'hello'],
+                ]),
+            });
+        });
+
+        test('delete existing fields', () => {
+            const tree = new Map<string, any>([
+                ['a', 1],
+                ['B', 2],
+                ['c', 3],
+                ['D', 4],
+            ]);
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            proxy.delete('B');
+            proxy.delete('D');
+
+            expect(tree).toEqual(
+                new Map<string, any>([
+                    ['a', 1],
+                    ['c', 3],
+                ]),
+            );
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                d: new Set(['B', 'D']),
+            });
+        });
+
+        test('delete non-existing fields', () => {
+            const tree = new Map<string, any>([
+                ['a', 1],
+                ['B', 2],
+            ]);
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            proxy.delete('c');
+            proxy.delete('D');
+
+            expect(tree).toEqual(
+                new Map<string, any>([
+                    ['a', 1],
+                    ['B', 2],
+                ]),
+            );
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                d: new Set(['c', 'D']),
+            });
         });
     });
-    /*
-    test('set', () => {
-        const tree1 = new Set<any>();
-        const tree2 = new Set<any>();
+    
+    describe('Set', () => {
+        test('set new fields', () => {
+            const tree = new Set();
 
-        const { proxy, getPatch } = recordPatch(tree1);
+            const { proxy, getPatch } = recordPatch(tree);
 
-        proxy.add('a');
-        proxy.add('b');
-        proxy.add(3);
-        proxy.delete('b');
+            proxy.add('A');
+            proxy.add('b');
+            proxy.add(1);
 
-        expect(tree1).toEqual(new Set(['a', 3]));
+            expect(tree).toEqual(
+                new Set(['A', 'b', 1]),
+            );
 
-        const patch = getPatch();
-        const updatedTree = applyPatch(tree2, patch);
+            const patch = getPatch();
 
-        expect(updatedTree).toEqual(tree1);
-        expect(updatedTree).not.toBe(tree1);
-        expect(updatedTree).not.toEqual(tree2);
-        expect(updatedTree).not.toBe(tree2);
+            expect(patch).toEqual({
+                a: new Set(['A', 'b', 1]),
+            });
+        });
 
-        expect(tree2).toEqual(new Set<any>());
+        test('set existing fields', () => {
+            const tree = new Set(['A', 'b', 1]);
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            proxy.add('A');
+            proxy.add('b');
+            proxy.add(1);
+
+            expect(tree).toEqual(
+                new Set(['A', 'b', 1]),
+            );
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                a: new Set(['A', 'b', 1]),
+            });
+        });
+
+        test('delete existing fields', () => {
+            const tree = new Set(['A', 'b', 1]);
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            proxy.delete('A');
+            proxy.delete(1);
+
+            expect(tree).toEqual(
+                new Set(['b']),
+            );
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                d: new Set(['A', 1]),
+            });
+        });
+
+        test('delete non-existing fields', () => {
+            const tree = new Set(['A', 'b', 1]);
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            proxy.delete('C');
+            proxy.delete(2);
+
+            expect(tree).toEqual(
+                new Set(['A', 'b', 1])
+            );
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                d: new Set(['C', 2]),
+            });
+        });
     });
-    */
 });
 
 describe('modifying child', () => {
