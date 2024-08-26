@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest';
 import { applyPatch } from './applyPatch';
 import { recordPatch } from './recordPatch';
 import { MapKey } from './Patch';
+import { ArrayOperationType } from './ArrayOperation';
 
 describe('no changes: patch is empty', () => {
     test('Object', () => {
@@ -282,6 +283,168 @@ describe('modifying root', () => {
                 d: new Set(['c', 'D']),
             });
         });
+    });
+
+    describe('Array', () => {
+        test('push to empty', () => {
+            const tree: string[] = [];
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            proxy.push('hello');
+            proxy.push('world');
+
+            expect(tree).toEqual(['hello', 'world']);
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                o: [
+                    {
+                        o: ArrayOperationType.Set,
+                        i: 0,
+                        v: 'hello',
+                    },
+                    {
+                        o: ArrayOperationType.Set,
+                        i: 1,
+                        v: 'world',
+                    }
+                ]
+            });
+        });
+        
+        test('set on empty', () => {
+            const tree: string[] = [];
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            proxy[0] = 'hello';
+            proxy[2] = 'world';
+
+            expect(tree).toEqual(['hello', undefined, 'world']);
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                o: [
+                    {
+                        o: ArrayOperationType.Set,
+                        i: 0,
+                        v: 'hello',
+                    },
+                    {
+                        o: ArrayOperationType.Set,
+                        i: 2,
+                        v: 'world',
+                    }
+                ]
+            });
+        });
+
+        test('push to existing', () => {
+            const tree: string[] = ['existing'];
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            proxy.push('hello');
+            proxy.push('world');
+
+            expect(tree).toEqual(['existing', 'hello', 'world']);
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                o: [
+                    {
+                        o: ArrayOperationType.Set,
+                        i: 1,
+                        v: 'hello',
+                    },
+                    {
+                        o: ArrayOperationType.Set,
+                        i: 2,
+                        v: 'world',
+                    }
+                ]
+            });
+        });
+        
+        test('set on existing', () => {
+            const tree: string[] = ['existing'];
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            proxy[0] = 'hello';
+            proxy[1] = 'world';
+
+            expect(tree).toEqual(['hello', 'world']);
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                o: [
+                    {
+                        o: ArrayOperationType.Set,
+                        i: 0,
+                        v: 'hello',
+                    },
+                    {
+                        o: ArrayOperationType.Set,
+                        i: 1,
+                        v: 'world',
+                    }
+                ]
+            });
+        });
+
+        test('delete on empty', () => {
+            const tree: string[] = [];
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            delete proxy[0];
+
+            expect(tree).toEqual([]);
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                o: [
+                    {
+                        o: ArrayOperationType.Delete,
+                        i: 0,
+                    },
+                ]
+            });
+        });
+
+        test('delete on existing', () => {
+            const tree: string[] = ['hello', 'world'];
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            delete proxy[1];
+
+            expect(tree).toEqual(['hello', undefined]);
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                o: [
+                    {
+                        o: ArrayOperationType.Delete,
+                        i: 1,
+                    },
+                ]
+            });
+        });
+
+        test('pop on existing', () => {
+            // TODO: this
+        });
+
+        // TODO: combined test of other array operations
     });
 
     describe('Set', () => {

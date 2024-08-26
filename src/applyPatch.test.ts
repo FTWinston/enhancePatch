@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { applyPatch } from './applyPatch';
-import { MapKey, Patch } from './Patch';
+import { ArrayPatch, MapKey, Patch } from './Patch';
+import { ArrayOperationType } from './ArrayOperation';
 
 describe('no changes: new tree equals original, but has been reassigned', () => {
     test('Object', () => {
@@ -126,40 +127,135 @@ describe('modifying root', () => {
             });
         });
     });
-    /*
     describe('Array', () => {
-        const tree1: any[] = [];
-        const tree2: any[] = [];
+        test('set on empty', () => {
+            const tree: string[] = [];
 
-        const { proxy, getPatch } = recordPatch(tree1);
+            const patch: ArrayPatch = {
+                o: [
+                    {
+                        o: ArrayOperationType.Set,
+                        i: 0,
+                        v: 'hello',
+                    },
+                    {
+                        o: ArrayOperationType.Set,
+                        i: 1,
+                        v: 'world',
+                    }
+                ]
+            };
 
-        proxy.push('hi');
-        proxy.push('there');
-        proxy.push({ what: 'up' });
+            const updatedTree = applyPatch(tree, patch);
 
-        proxy.splice(1, 1);
+            expect(updatedTree).not.toBe(tree);
+            expect(updatedTree).toEqual(['hello', 'world']);
+        });
 
-        proxy.push('hey');
-        proxy[1].hello = 'there';
+        test('set on existing', () => {
+            const tree: string[] = ['existing'];
 
-        expect(tree1).toEqual([
-            'hi',
-            {
-                what: 'up',
-                hello: 'there',
-            },
-            'hey',
-        ]);
+            const patch: ArrayPatch = {
+                o: [
+                    {
+                        o: ArrayOperationType.Set,
+                        i: 0,
+                        v: 'hello',
+                    },
+                    {
+                        o: ArrayOperationType.Set,
+                        i: 1,
+                        v: 'world',
+                    }
+                ]
+            };
 
-        const patch = getPatch();
-        const updatedTree = applyPatch(tree2, patch);
+            const updatedTree = applyPatch(tree, patch);
 
-        expect(updatedTree).toEqual(tree1);
-        expect(updatedTree).not.toBe(tree1);
-        expect(updatedTree).not.toEqual(tree2);
-        expect(updatedTree).not.toBe(tree2);
+            expect(updatedTree).not.toBe(tree);
+            expect(updatedTree).toEqual(['hello', 'world']);
+        });
+        
+        test('set with gap', () => {
+            const tree: string[] = [];
+
+            const patch: ArrayPatch = {
+                o: [
+                    {
+                        o: ArrayOperationType.Set,
+                        i: 0,
+                        v: 'hello',
+                    },
+                    {
+                        o: ArrayOperationType.Set,
+                        i: 2,
+                        v: 'world',
+                    }
+                ]
+            };
+
+            const updatedTree = applyPatch(tree, patch);
+
+            expect(updatedTree).not.toBe(tree);
+            expect(updatedTree).toEqual(['hello', undefined, 'world']);
+        });
+        
+        test('delete on empty', () => {
+            const tree: string[] = [];
+
+            const patch: ArrayPatch = {
+                o: [
+                    {
+                        o: ArrayOperationType.Delete,
+                        i: 0,
+                    },
+                ]
+            };
+
+            const updatedTree = applyPatch(tree, patch);
+
+            expect(updatedTree).not.toBe(tree);
+            expect(updatedTree).toEqual([]);
+        });
+
+        test('delete on existing', () => {
+            const tree: string[] = ['hello', 'world'];
+
+            const patch: ArrayPatch = {
+                o: [
+                    {
+                        o: ArrayOperationType.Delete,
+                        i: 1,
+                    },
+                ]
+            };
+
+            const updatedTree = applyPatch(tree, patch);
+
+            expect(updatedTree).not.toBe(tree);
+            expect(updatedTree).toEqual(['hello', undefined]);
+        });
+
+        test('delete in middle', () => {
+            const tree: string[] = ['hello', 'there', 'world'];
+
+            const patch: ArrayPatch = {
+                o: [
+                    {
+                        o: ArrayOperationType.Delete,
+                        i: 1,
+                    },
+                ]
+            };
+
+            const updatedTree = applyPatch(tree, patch);
+
+            expect(updatedTree).not.toBe(tree);
+            expect(updatedTree).toEqual(['hello', undefined, 'world']);
+        });
+        
+        // TODO: combined test of other array operations
     });
-*/
 
     describe('Map', () => {
         test('set new fields', () => {

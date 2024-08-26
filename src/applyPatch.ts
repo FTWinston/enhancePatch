@@ -10,7 +10,6 @@ import { isArray, isMap, isObject, isSet } from './typeChecks';
 import {
     ArrayOperation,
     ArrayOperationType,
-    ArraySpliceOperation,
 } from './ArrayOperation';
 
 function patchObject(tree: Record<string, any>, patch: ObjectPatch) {
@@ -43,7 +42,7 @@ function applyArrayOperation(tree: any[], operation: ArrayOperation) {
             tree[operation.i] = operation.v;
             break;
         case ArrayOperationType.Delete:
-            tree.splice(operation.i, 1);
+            delete tree[operation.i];
             break;
         case ArrayOperationType.Splice:
             if (operation.n !== undefined) {
