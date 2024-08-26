@@ -313,7 +313,24 @@ export class ProxyManager<TRoot extends object> {
             get: (target, field) => {
                 let val = (target as any)[field];
 
-                if (field === 'splice') {
+                if (field === 'pop') {
+                    return () => {
+                        const operation: ArrayOperation = {
+                            o: ArrayOperationType.Splice,
+                            i: target.length - 1,
+                            d: 1,
+                            n: [],
+                        };
+
+                        this.addArrayOp(info, operation);
+
+                        const popped = target.pop();
+
+                        this.removeProxy(popped);
+
+                        return popped;
+                    };
+                } else if (field === 'splice') {
                     return (
                         start: number,
                         deleteCount: number,
@@ -340,7 +357,10 @@ export class ProxyManager<TRoot extends object> {
                 } else if (field === 'shift') {
                     return () => {
                         const operation: ArrayOperation = {
-                            o: ArrayOperationType.Shift,
+                            o: ArrayOperationType.Splice,
+                            i: 0,
+                            d: 1,
+                            n: [],
                         };
 
                         this.addArrayOp(info, operation);
@@ -356,13 +376,14 @@ export class ProxyManager<TRoot extends object> {
                 } else if (field === 'unshift') {
                     return (...items: any[]) => {
                         const operation: ArrayOperation = {
-                            o: ArrayOperationType.Unshift,
+                            o: ArrayOperationType.Splice,
+                            i: 0,
+                            d: 0,
                             n: items,
                         };
 
                         this.addArrayOp(info, operation);
 
-                        // update child patch indices... i
                         this.adjustArrayChildIndexes(info, operation);
 
                         return target.unshift(...items);

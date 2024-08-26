@@ -440,11 +440,113 @@ describe('modifying root', () => {
             });
         });
 
-        test('pop on existing', () => {
-            // TODO: this
+        test('pop on empty', () => {
+            const tree: string[] = [];
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            const popped = proxy.pop();
+
+            expect(popped).toBe(undefined);
+
+            expect(tree).toEqual([]);
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                o: [
+                    {
+                        o: ArrayOperationType.Splice,
+                        i: -1,
+                        d: 1,
+                        n: [],
+                    },
+                ]
+            });
         });
 
-        // TODO: combined test of other array operations
+        test('pop on existing', () => {
+            const tree: string[] = ['hello', 'world'];
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            const popped = proxy.pop();
+
+            expect(popped).toBe('world');
+
+            expect(tree).toEqual(['hello']);
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                o: [
+                    {
+                        o: ArrayOperationType.Splice,
+                        i: 1,
+                        d: 1,
+                        n: [],
+                    },
+                ]
+            });
+        });
+
+        test('shift on empty', () => {
+            const tree: string[] = [];
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            const popped = proxy.shift();
+
+            expect(popped).toBe(undefined);
+
+            expect(tree).toEqual([]);
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                o: [
+                    {
+                        o: ArrayOperationType.Splice,
+                        i: 0,
+                        d: 1,
+                        n: [],
+                    },
+                ]
+            });
+        });
+
+        test('shift on existing', () => {
+            const tree: string[] = ['hello', 'world'];
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            const popped = proxy.shift();
+
+            expect(popped).toBe('hello');
+
+            expect(tree).toEqual(['world']);
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                o: [
+                    {
+                        o: ArrayOperationType.Splice,
+                        i: 0,
+                        d: 1,
+                        n: [],
+                    },
+                ]
+            });
+        });
+
+        // TODO: test of unshift
+
+        // TODO: test of splice
+
+        // TODO: test reverse operation
+
+        // TODO: combined test of multiple operations
     });
 
     describe('Set', () => {

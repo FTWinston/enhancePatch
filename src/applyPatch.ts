@@ -51,12 +51,6 @@ function applyArrayOperation(tree: any[], operation: ArrayOperation) {
                 tree.splice(operation.i, operation.d);
             }
             break;
-        case ArrayOperationType.Shift:
-            tree.shift();
-            break;
-        case ArrayOperationType.Unshift:
-            tree.unshift(...operation.n);
-            break;
         case ArrayOperationType.Reverse:
             tree.reverse();
             break;

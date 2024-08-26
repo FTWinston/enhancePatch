@@ -544,14 +544,20 @@ describe('o in newer patch', () => {
         const patch2: Patch = {
             o: [
                 {
-                    o: ArrayOperationType.Shift,
+                    o: ArrayOperationType.Splice,
+                    i: 0,
+                    d: 1,
+                    n: [],
                 },
                 {
                     o: ArrayOperationType.Reverse,
                     l: 3,
                 },
                 {
-                    o: ArrayOperationType.Shift,
+                    o: ArrayOperationType.Splice,
+                    i: 0,
+                    d: 1,
+                    n: [],
                 },
             ],
         };
@@ -565,14 +571,20 @@ describe('o in newer patch', () => {
             ]),
             o: [
                 {
-                    o: ArrayOperationType.Shift,
+                    o: ArrayOperationType.Splice,
+                    i: 0,
+                    d: 1,
+                    n: [],
                 },
                 {
                     o: ArrayOperationType.Reverse,
                     l: 3,
                 },
                 {
-                    o: ArrayOperationType.Shift,
+                    o: ArrayOperationType.Splice,
+                    i: 0,
+                    d: 1,
+                    n: [],
                 },
             ],
         });

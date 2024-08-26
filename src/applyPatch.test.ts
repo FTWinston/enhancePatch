@@ -254,7 +254,11 @@ describe('modifying root', () => {
             expect(updatedTree).toEqual(['hello', undefined, 'world']);
         });
         
-        // TODO: combined test of other array operations
+        // TODO: tests of splice operation
+
+        // TODO: test reverse operation
+
+        // TODO: combined test of multiple operations
     });
 
     describe('Map', () => {

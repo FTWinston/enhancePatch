@@ -2,14 +2,10 @@
 export enum ArrayOperationType {
     /** Set a particular index in an array */
     Set = 's',
-    /** Delete a particular index in an array */
+    /** Delete a particular index in an array, leaving undefined */
     Delete = 'd',
     /** Remove certain index(es) from an array, and optionally insert new values in the same location, adjusting hte indexes of all subsequent items */
-    Splice = 'sp',
-    /** Remove first element from an array, adjusting the indexes of all remaining items */
-    Shift = 'sh',
-    /** Add new items to the start of an array, adjusting the indexes of all existing items */
-    Unshift = 'un',
+    Splice = 'x',
     /** Reverse the order of an array */
     Reverse = 'r',
 }
@@ -19,8 +15,6 @@ export type ArrayOperation =
     | ArraySetOperation
     | ArrayDeleteOperation
     | ArraySpliceOperation
-    | ArrayShiftOperation
-    | ArrayUnshiftOperation
     | ArrayReverseOperation;
 
 export interface ArraySetOperation {
@@ -38,7 +32,6 @@ export interface ArrayDeleteOperation {
     /** index to delete */
     i: number;
 }
-
 export interface ArraySpliceOperation {
     /** array operation type */
     o: typeof ArrayOperationType.Splice;
@@ -46,18 +39,6 @@ export interface ArraySpliceOperation {
     i: number;
     /** delete count */
     d: number;
-    /** new items to insert */
-    n: any[];
-}
-
-export interface ArrayShiftOperation {
-    /** array operation type */
-    o: typeof ArrayOperationType.Shift;
-}
-
-export interface ArrayUnshiftOperation {
-    /** array operation type */
-    o: typeof ArrayOperationType.Unshift;
     /** new items to insert */
     n: any[];
 }
