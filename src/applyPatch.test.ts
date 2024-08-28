@@ -254,9 +254,144 @@ describe('modifying root', () => {
             expect(updatedTree).toEqual(['hello', undefined, 'world']);
         });
         
-        // TODO: tests of splice operation
+        test('splice delete on empty', () => {
+            const tree: string[] = [];
 
-        // TODO: test reverse operation
+            const patch: ArrayPatch = {
+                o: [
+                    {
+                        o: ArrayOperationType.Splice,
+                        i: 0,
+                        d: 1,
+                        n: [],
+                    },
+                ]
+            };
+
+            const updatedTree = applyPatch(tree, patch);
+
+            expect(updatedTree).not.toBe(tree);
+            expect(updatedTree).toEqual([]);
+        });
+        
+        test('splice insert on empty', () => {
+            const tree: string[] = [];
+
+            const patch: ArrayPatch = {
+                o: [
+                    {
+                        o: ArrayOperationType.Splice,
+                        i: 0,
+                        d: 0,
+                        n: ['hello', 'world'],
+                    },
+                ]
+            };
+
+            const updatedTree = applyPatch(tree, patch);
+
+            expect(updatedTree).not.toBe(tree);
+            expect(updatedTree).toEqual(['hello', 'world']);
+        });
+        
+        test('splice both on empty', () => {
+            const tree: string[] = [];
+
+            const patch: ArrayPatch = {
+                o: [
+                    {
+                        o: ArrayOperationType.Splice,
+                        i: 0,
+                        d: 1,
+                        n: ['hello', 'world'],
+                    },
+                ]
+            };
+
+            const updatedTree = applyPatch(tree, patch);
+
+            expect(updatedTree).not.toBe(tree);
+            expect(updatedTree).toEqual(['hello', 'world']);
+        });
+        
+        
+        test('splice delete on existing', () => {
+            const tree: string[] = ['hello', 'world'];
+
+            const patch: ArrayPatch = {
+                o: [
+                    {
+                        o: ArrayOperationType.Splice,
+                        i: 1,
+                        d: 1,
+                        n: [],
+                    },
+                ]
+            };
+
+            const updatedTree = applyPatch(tree, patch);
+
+            expect(updatedTree).not.toBe(tree);
+            expect(updatedTree).toEqual(['hello']);
+        });
+        
+        test('splice insert on existing', () => {
+            const tree: string[] = ['hello', 'world'];
+
+            const patch: ArrayPatch = {
+                o: [
+                    {
+                        o: ArrayOperationType.Splice,
+                        i: 1,
+                        d: 0,
+                        n: ['first', 'second'],
+                    },
+                ]
+            };
+
+            const updatedTree = applyPatch(tree, patch);
+
+            expect(updatedTree).not.toBe(tree);
+            expect(updatedTree).toEqual(['hello', 'first', 'second', 'world']);
+        });
+        
+        test('splice both on existing', () => {
+            const tree: string[] = ['hello', 'world'];
+
+            const patch: ArrayPatch = {
+                o: [
+                    {
+                        o: ArrayOperationType.Splice,
+                        i: 1,
+                        d: 1,
+                        n: ['first', 'second'],
+                    },
+                ]
+            };
+
+            const updatedTree = applyPatch(tree, patch);
+
+            expect(updatedTree).not.toBe(tree);
+            expect(updatedTree).toEqual(['hello', 'first', 'second']);
+        });
+
+        test('reverse', () => {
+            const tree: string[] = ['first', 'second', 'third'];
+
+            const patch: ArrayPatch = {
+                o: [
+                    {
+                        o: ArrayOperationType.Reverse,
+                        l: 3,
+                    },
+                ]
+            };
+
+            const updatedTree = applyPatch(tree, patch);
+
+            expect(updatedTree).not.toBe(tree);
+            expect(updatedTree).toEqual(['third', 'second', 'first']);
+        });
 
         // TODO: combined test of multiple operations
     });

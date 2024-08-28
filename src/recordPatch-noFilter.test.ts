@@ -540,11 +540,253 @@ describe('modifying root', () => {
             });
         });
 
-        // TODO: test of unshift
+        test('unshift on empty', () => {
+            const tree: string[] = [];
 
-        // TODO: test of splice
+            const { proxy, getPatch } = recordPatch(tree);
 
-        // TODO: test reverse operation
+            const newLength = proxy.unshift('hello');
+
+            expect(newLength).toBe(1);
+
+            expect(tree).toEqual(['hello']);
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                o: [
+                    {
+                        o: ArrayOperationType.Splice,
+                        i: 0,
+                        d: 0,
+                        n: ['hello'],
+                    },
+                ]
+            });
+        });
+
+        test('unshift on existing', () => {
+            const tree: string[] = ['hello', 'world'];
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            const newLength = proxy.unshift('hi');
+
+            expect(newLength).toBe(3);
+
+            expect(tree).toEqual(['hi', 'hello', 'world']);
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                o: [
+                    {
+                        o: ArrayOperationType.Splice,
+                        i: 0,
+                        d: 0,
+                        n: ['hi'],
+                    },
+                ]
+            });
+        });
+
+        test('unshift multiple existing', () => {
+            const tree: string[] = ['hello', 'world'];
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            const newLength = proxy.unshift('first', 'second');
+
+            expect(newLength).toBe(4);
+
+            expect(tree).toEqual(['first', 'second', 'hello', 'world']);
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                o: [
+                    {
+                        o: ArrayOperationType.Splice,
+                        i: 0,
+                        d: 0,
+                        n: ['first', 'second'],
+                    },
+                ]
+            });
+        });
+
+        test('splice delete on empty', () => {
+            const tree: string[] = [];
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            const spliced = proxy.splice(0, 1);
+
+            expect(spliced).toEqual([]);
+
+            expect(tree).toEqual([]);
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                o: [
+                    {
+                        o: ArrayOperationType.Splice,
+                        i: 0,
+                        d: 1,
+                        n: [],
+                    },
+                ]
+            });
+        });
+
+        test('splice insert on empty', () => {
+            const tree: string[] = [];
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            const spliced = proxy.splice(0, 0, 'first', 'second');
+
+            expect(spliced).toEqual([]);
+
+            expect(tree).toEqual(['first', 'second']);
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                o: [
+                    {
+                        o: ArrayOperationType.Splice,
+                        i: 0,
+                        d: 0,
+                        n: ['first', 'second'],
+                    },
+                ]
+            });
+        });
+
+        test('splice both on empty', () => {
+            const tree: string[] = [];
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            const spliced = proxy.splice(0, 1, 'first', 'second');
+
+            expect(spliced).toEqual([]);
+
+            expect(tree).toEqual(['first', 'second']);
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                o: [
+                    {
+                        o: ArrayOperationType.Splice,
+                        i: 0,
+                        d: 1,
+                        n: ['first', 'second'],
+                    },
+                ]
+            });
+        });
+
+        test('splice delete on existing', () => {
+            const tree: string[] = ['hello', 'world'];
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            const spliced = proxy.splice(1, 1);
+
+            expect(spliced).toEqual(['world']);
+
+            expect(tree).toEqual(['hello']);
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                o: [
+                    {
+                        o: ArrayOperationType.Splice,
+                        i: 1,
+                        d: 1,
+                        n: [],
+                    },
+                ]
+            });
+        });
+
+        test('splice insert on existing', () => {
+            const tree: string[] = ['hello', 'world'];
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            const spliced = proxy.splice(1, 0, 'first', 'second');
+
+            expect(spliced).toEqual([]);
+
+            expect(tree).toEqual(['hello', 'first', 'second', 'world']);
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                o: [
+                    {
+                        o: ArrayOperationType.Splice,
+                        i: 1,
+                        d: 0,
+                        n: ['first', 'second'],
+                    },
+                ]
+            });
+        });
+
+        test('splice both on existing', () => {
+            const tree: string[] = ['hello', 'world'];
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            const spliced = proxy.splice(1, 1, 'first', 'second');
+
+            expect(spliced).toEqual(['world']);
+
+            expect(tree).toEqual(['hello', 'first', 'second']);
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                o: [
+                    {
+                        o: ArrayOperationType.Splice,
+                        i: 1,
+                        d: 1,
+                        n: ['first', 'second'],
+                    },
+                ]
+            });
+        });
+
+        test('reverse', () => {
+            const tree: string[] = ['first', 'second', 'third'];
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            const reversed = proxy.reverse();
+
+            expect(reversed).toBe(tree);
+
+            expect(tree).toEqual(['third', 'second', 'first']);
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                o: [
+                    {
+                        o: ArrayOperationType.Reverse,
+                        l: 3,
+                    },
+                ]
+            });
+        });
 
         // TODO: combined test of multiple operations
     });
