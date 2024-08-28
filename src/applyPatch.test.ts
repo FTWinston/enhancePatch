@@ -393,7 +393,40 @@ describe('modifying root', () => {
             expect(updatedTree).toEqual(['third', 'second', 'first']);
         });
 
-        // TODO: combined test of multiple operations
+        test('multiple operations', () => {
+            const tree: string[] = ['first', 'second', 'third'];
+
+            const patch: ArrayPatch = {
+                o: [
+                    {
+                        o: ArrayOperationType.Splice,
+                        i: 0,
+                        d: 0,
+                        n: ['zeroth'],
+                    },
+                    {
+                        o: ArrayOperationType.Splice,
+                        i: 2,
+                        d: 1,
+                        n: [],
+                    },
+                    {
+                        o: ArrayOperationType.Reverse,
+                        l: 3,
+                    },
+                    {
+                        o: ArrayOperationType.Set,
+                        i: 3,
+                        v: 'second',
+                    },
+                ]
+            };
+
+            const updatedTree = applyPatch(tree, patch);
+
+            expect(updatedTree).not.toBe(tree);
+            expect(updatedTree).toEqual(['third', 'first', 'zeroth', 'second']);
+        });
     });
 
     describe('Map', () => {

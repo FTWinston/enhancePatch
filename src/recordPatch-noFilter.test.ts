@@ -788,7 +788,49 @@ describe('modifying root', () => {
             });
         });
 
-        // TODO: combined test of multiple operations
+        test('multiple operations', () => {
+            const tree: string[] = ['first', 'second', 'third'];
+
+            const { proxy, getPatch } = recordPatch(tree);
+
+            proxy.unshift('zeroth');
+
+            const [second] = proxy.splice(2, 1);
+            
+            proxy.reverse();
+
+            proxy.push(second);
+
+            expect(tree).toEqual(['third', 'first', 'zeroth', 'second']);
+
+            const patch = getPatch();
+
+            expect(patch).toEqual({
+                o: [
+                    {
+                        o: ArrayOperationType.Splice,
+                        i: 0,
+                        d: 0,
+                        n: ['zeroth'],
+                    },
+                    {
+                        o: ArrayOperationType.Splice,
+                        i: 2,
+                        d: 1,
+                        n: [],
+                    },
+                    {
+                        o: ArrayOperationType.Reverse,
+                        l: 3,
+                    },
+                    {
+                        o: ArrayOperationType.Set,
+                        i: 3,
+                        v: 'second',
+                    },
+                ]
+            });
+        });
     });
 
     describe('Set', () => {
