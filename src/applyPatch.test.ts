@@ -569,7 +569,10 @@ describe('modifying root', () => {
     });
 });
 
-// TODO: more "unit" tests, less "lots of things at once" tests.
+// TODO: "unit" child tests, including mixing child and root changes,
+// including how array operations change the order of existing child changes.
+
+// TODO: "unit" grandchild tests.
 
 test('objects', () => {
     const tree = {

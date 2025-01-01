@@ -906,6 +906,8 @@ describe('modifying root', () => {
     });
 });
 
+// TODO: more "unit" tests, less "lots of things at once" tests.
+
 describe('modifying child', () => {
     test('object in object', () => {
         const tree1: Record<string, any> = { child: {} };
